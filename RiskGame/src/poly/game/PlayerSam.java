@@ -1,15 +1,15 @@
 package poly.game;
 
+import java.util.Random;
+
 public class PlayerSam extends Player {
 
 	public PlayerSam(String name) {
 		super(name);
-		// TODO Auto-generated constructor stub
 	}
 
 	@Override
 	public void updateModel() {
-		// TODO Auto-generated method stub
 
 	}
 
@@ -20,12 +20,11 @@ public class PlayerSam extends Player {
 				return t.name;
 			}
 		}
-		return Map.QUEBEC;
+		return "problem";
 	}
 
 	@Override
 	public int chooseNbOfUnits(int remainingThisTurn) {
-		// TODO Auto-generated method stub
 		if(this.remainingUnits - remainingThisTurn < 0){
 			return this.remainingUnits;
 		}
@@ -33,10 +32,28 @@ public class PlayerSam extends Player {
 	}
 
 	@Override
-	public String reinforceTerritory() {
-		for(Territory t : occupiedTerritories){
-			return t.name;
-		}
-		return "none";
+	public String pickReinforceTerritory() {
+		Random ran = new Random();
+		int r = ran.nextInt(occupiedTerritories.size());
+		Territory pick = occupiedTerritories.get(r);
+		
+		return pick.name;
+	}
+
+	@Override
+	public void assignReinforcements() {
+		Random ran = new Random();
+		
+		//random territory
+		int rt = ran.nextInt(occupiedTerritories.size());
+		
+		// random nb of units
+		int ru = ran.nextInt(this.remainingUnits) + 1;
+
+		// assign random nb of units on the random territory
+		Territory pick = occupiedTerritories.get(rt);
+		pick.setUnits(ru);
+		
+		this.remainingUnits -= ru;
 	}
 }

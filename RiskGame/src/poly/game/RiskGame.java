@@ -22,18 +22,20 @@ public class RiskGame {
 	// Entry point
 	public void startGame(){
 
+		// Initial phase
 		initPlayers();
 		initTerritories();
 		ditributeTerritories();
 		placeRemainingUnits();
-
-		this.playGame();
+		
+		// Game phase
+		playGame();
 	}
 
 	// Initialize all territories
 	public void initTerritories(){
-		MapGenerator gen = new MapGenerator();
-		territories = gen.generate();
+		Map map = new Map();
+		territories = map.generate();
 	}
 
 	// Initialize players
@@ -42,8 +44,8 @@ public class RiskGame {
 		currentPlayerIndex = -1;
 
 		Player sam 	= new PlayerSam("Sam");
-		Player sam2 = new PlayerSam("Test");
-		Player sam3 = new PlayerSam("bob");
+		Player sam2 = new PlayerSam("Gino");
+		Player sam3 = new PlayerSam("Bob");
 		
 		sam.occupiedTerritories = new ArrayList<Territory>();
 		sam2.occupiedTerritories = new ArrayList<Territory>();
@@ -62,7 +64,7 @@ public class RiskGame {
 		// Random player starts choosing his territory
 		currentPlayerIndex = random.nextInt(players.size());
 
-		int startingUnits = 30;
+		int startingUnits = 35;
 		for(Player p : players){
 			p.remainingUnits = startingUnits;
 			p.allTerritories = territories;
@@ -95,35 +97,32 @@ public class RiskGame {
 			currentPlayer = players.get(currentPlayerIndex);
 			
 			// Check if the player still has reinforcements to place
-			if(currentPlayer.remainingUnits != 0){
+			if(currentPlayer.remainingUnits > 0){
 				
 				// Selection of the territory and with how many units
 				int nbReinforcement = currentPlayer.chooseNbOfUnits(remainingUnitsThisRound);
-				String territory = currentPlayer.reinforceTerritory();
+				String territory = currentPlayer.pickReinforceTerritory();
 	
 				// Try to reinforce
 				if(Map.reinforceTerritoryWithUnits(territory, currentPlayer, nbReinforcement, territories)){
 					System.out.println(currentPlayer.name + " assigned " + nbReinforcement + " units on : " + territory);
-					currentPlayer.remainingUnits -= nbReinforcement;
 					remainingUnitsThisRound -= nbReinforcement;
 	
 					if(remainingUnitsThisRound == 0){
 						currentPlayerIndex = (currentPlayerIndex + 1)%players.size();
 						remainingUnitsThisRound = 3;
 						
-						if(currentPlayer.remainingUnits - remainingUnitsThisRound < 0){
+						if(currentPlayer.remainingUnits - remainingUnitsThisRound <= 0){
 							remainingUnitsThisRound = currentPlayer.remainingUnits;
 						}
 					}
 				} else{
 					System.out.println("An error occured");
 				}
+			
 			// No more reinforcements, player is out	
 			} else { 
 				currentPlayerIndex = (currentPlayerIndex + 1)%players.size();
-				for (Player p:players){
-					System.out.println(p.name + " has " +p.remainingUnits + " left");
-				}
 			}
 		}
 		System.out.println("Initialization all done!");
@@ -139,12 +138,65 @@ public class RiskGame {
 
 	private void playGame(){
 		Scanner scan = new Scanner(System.in);
-
-		while(players.size() != 1){
-			String userInput = scan.nextLine();
-			System.out.println(userInput);
-			players.remove(1);
+		
+		// Random first turn pick
+		currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
+		currentPlayer = players.get(currentPlayerIndex);
+		
+		int i = 0;
+		while(i < 3){
+			//String userInput = scan.nextLine();
+			//System.out.println(userInput);
+				
+			// Execute the turn for currentPlayer
+			executeTurn();
+			
+			// Next player
+			currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
+			currentPlayer = players.get(currentPlayerIndex);
+			i++;
 		}
+	}
+	
+	private void executeTurn(){
+		
+		int newReinforcements = calculateNbReinforcements();
+		currentPlayer.remainingUnits = newReinforcements;
+		
+		while(currentPlayer.remainingUnits > 0){
+			// Place all new units
+			currentPlayer.assignReinforcements();
+		}
+		currentPlayer.printTerritories();
+
+	}
+	
+	private int calculateNbReinforcements(){
+		int num = 3;
+		
+		num += Map.getContinentReinforcements(currentPlayer.occupiedTerritories);
+		
+		int nbControlledTerritories = currentPlayer.occupiedTerritories.size();
+		
+		// Add by number of controlled territories
+		if(nbControlledTerritories > 33){
+			num += 7;
+		} else if(nbControlledTerritories > 30 && nbControlledTerritories < 33){
+			num += 6;
+		} else if(nbControlledTerritories > 27 && nbControlledTerritories < 30){
+			num += 5;
+		} else if(nbControlledTerritories > 24 && nbControlledTerritories < 27){
+			num += 4;
+		} else if(nbControlledTerritories > 21 && nbControlledTerritories < 24){
+			num += 3;
+		} else if(nbControlledTerritories > 18 && nbControlledTerritories < 21){
+			num += 2;
+		} else if(nbControlledTerritories > 15 && nbControlledTerritories < 18){
+			num += 1;
+		}
+		
+		return num;
+		
 	}
 
 }

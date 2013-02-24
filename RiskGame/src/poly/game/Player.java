@@ -26,11 +26,11 @@ public abstract class Player {
 	// Assign a number of units (initial round)
 	public abstract int chooseNbOfUnits(int remainingThisTurn);
 	
-	// reinforce a territory
-	public abstract String reinforceTerritory();
-
-
+	// reinforce a territory (initial round)
+	public abstract String pickReinforceTerritory();
 	
+	// Assign part of remaining reinforcements
+	public abstract void assignReinforcements();
 	
 	public boolean isAlive(){
 		if(occupiedTerritories.size() == 0){
@@ -38,6 +38,13 @@ public abstract class Player {
 		}
 		return true;
 		
+	}
+	
+	public void printTerritories(){
+		System.out.println(this.name + " Territories --------");
+		for(Territory t : occupiedTerritories){
+			System.out.println(t.name + " with " + t.getUnits());
+		}
 	}
 	
 }
