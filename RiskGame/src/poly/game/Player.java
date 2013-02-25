@@ -41,10 +41,11 @@ public abstract class Player {
 	}
 	
 	public void printTerritories(){
-		System.out.println(this.name + " Territories --------");
+		System.out.println("--------- " + this.name + " Territories ---------");
 		for(Territory t : occupiedTerritories){
-			System.out.println(t.name + " with " + t.getUnits());
+			System.out.println(t.name + " with " + t.getUnits() + " units");
 		}
+		System.out.println();
 	}
 	
 }

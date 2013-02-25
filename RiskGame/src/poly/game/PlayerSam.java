@@ -25,10 +25,10 @@ public class PlayerSam extends Player {
 
 	@Override
 	public int chooseNbOfUnits(int remainingThisTurn) {
-		if(this.remainingUnits - remainingThisTurn < 0){
-			return this.remainingUnits;
-		}
-		return remainingThisTurn;
+		// Random nb of units between 1 and the remaining units placable this turn (3 being the max)
+		Random ran = new Random();
+		int r = ran.nextInt(remainingThisTurn) + 1;
+		return r;
 	}
 
 	@Override

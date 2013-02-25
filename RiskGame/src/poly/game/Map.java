@@ -39,6 +39,16 @@ public class Map {
 	public static final String SOUTH_AFRICA 		= "south_africa";
 	public static final String MADAGASCAR 			= "madagascar";
 	
+	// Countries by continent - EUROPE
+	public static final String ICELAND 				= "iceland";
+	public static final String GREAT_BRITAIN 		= "great_britain";
+	public static final String W_EUROPE 			= "w_europe";
+	public static final String N_EUROPE 			= "n_europe";
+	public static final String SCANDINAVIA 			= "scandinavia";
+	public static final String UKRAINE 				= "ukraine";
+	public static final String S_EUROPE 			= "s_europe";
+
+	
 	private static ArrayList<Territory> northAmerica;
 	private static ArrayList<Territory> southAmerica;
 	private static ArrayList<Territory> africa;
@@ -77,12 +87,20 @@ public class Map {
 		Territory south_africa		= new Territory(AFRICA, SOUTH_AFRICA);
 		Territory madagascar		= new Territory(AFRICA, MADAGASCAR);
 		
+		// Europe
+		Territory iceland 			= new Territory(EUROPE, ICELAND);
+		Territory great_britain 	= new Territory(EUROPE, GREAT_BRITAIN);
+		Territory w_europe 			= new Territory(EUROPE, W_EUROPE);
+		Territory n_europe			= new Territory(EUROPE, N_EUROPE);
+		Territory s_europe			= new Territory(EUROPE, S_EUROPE);
+		Territory ukraine			= new Territory(EUROPE, UKRAINE);
+		Territory scandinavia		= new Territory(EUROPE, SCANDINAVIA);
 
 		// North America - Adjacent
 		quebec.adjacentTerritories 			= new ArrayList<Territory>(Arrays.asList( ontario, greenland, eastern_us ));
 		ontario.adjacentTerritories 		= new ArrayList<Territory>(Arrays.asList( quebec, greenland, eastern_us, western_us, nw_territory, alberta ));
 		alberta.adjacentTerritories 		= new ArrayList<Territory>(Arrays.asList( ontario, western_us, nw_territory, alaska ));
-		greenland.adjacentTerritories 		= new ArrayList<Territory>(Arrays.asList( quebec, ontario, nw_territory ));
+		greenland.adjacentTerritories 		= new ArrayList<Territory>(Arrays.asList( quebec, ontario, nw_territory, iceland ));
 		eastern_us.adjacentTerritories 		= new ArrayList<Territory>(Arrays.asList( quebec, ontario, western_us, cent_america ));
 		western_us.adjacentTerritories 		= new ArrayList<Territory>(Arrays.asList( eastern_us, cent_america, alberta, ontario ));
 		nw_territory.adjacentTerritories 	= new ArrayList<Territory>(Arrays.asList( alberta, ontario, greenland, alaska ));
@@ -90,32 +108,45 @@ public class Map {
 		cent_america.adjacentTerritories 	= new ArrayList<Territory>(Arrays.asList( eastern_us, western_us, venezuela ));
 		
 		// South America - Adjacent
-		venezuela.adjacentTerritories 	= new ArrayList<Territory>(Arrays.asList( brazil, peru, cent_america ));
-		brazil.adjacentTerritories 		= new ArrayList<Territory>(Arrays.asList( peru, venezuela, argentina, north_africa ));
-		peru.adjacentTerritories 		= new ArrayList<Territory>(Arrays.asList( brazil, venezuela, argentina ));
-		argentina.adjacentTerritories 	= new ArrayList<Territory>(Arrays.asList( brazil, peru ));
+		venezuela.adjacentTerritories 		= new ArrayList<Territory>(Arrays.asList( brazil, peru, cent_america ));
+		brazil.adjacentTerritories 			= new ArrayList<Territory>(Arrays.asList( peru, venezuela, argentina, north_africa ));
+		peru.adjacentTerritories 			= new ArrayList<Territory>(Arrays.asList( brazil, venezuela, argentina ));
+		argentina.adjacentTerritories 		= new ArrayList<Territory>(Arrays.asList( brazil, peru ));
 		
 		// Africa - Adjacent
-		north_africa.adjacentTerritories 	= new ArrayList<Territory>(Arrays.asList( egypt, east_africa, congo ));
-		egypt.adjacentTerritories 			= new ArrayList<Territory>(Arrays.asList( north_africa, east_africa ));
+		north_africa.adjacentTerritories 	= new ArrayList<Territory>(Arrays.asList( egypt, east_africa, congo, w_europe, s_europe ));
+		egypt.adjacentTerritories 			= new ArrayList<Territory>(Arrays.asList( north_africa, east_africa, s_europe ));
 		east_africa.adjacentTerritories 	= new ArrayList<Territory>(Arrays.asList( egypt, north_africa, congo, madagascar ));
 		congo.adjacentTerritories 			= new ArrayList<Territory>(Arrays.asList( north_africa, south_africa, east_africa ));
 		south_africa.adjacentTerritories 	= new ArrayList<Territory>(Arrays.asList( madagascar, congo, east_africa ));
 		madagascar.adjacentTerritories 		= new ArrayList<Territory>(Arrays.asList( south_africa, east_africa ));
+		
+		// Europe - Adjacent
+		iceland.adjacentTerritories 		= new ArrayList<Territory>(Arrays.asList( greenland, n_europe, great_britain, scandinavia ));
+		great_britain.adjacentTerritories 	= new ArrayList<Territory>(Arrays.asList( iceland, n_europe, w_europe, scandinavia ));
+		n_europe.adjacentTerritories 		= new ArrayList<Territory>(Arrays.asList( iceland, w_europe, s_europe, ukraine, scandinavia, great_britain ));
+		s_europe.adjacentTerritories 		= new ArrayList<Territory>(Arrays.asList( w_europe, ukraine, n_europe, egypt, north_africa ));
+		w_europe.adjacentTerritories 		= new ArrayList<Territory>(Arrays.asList( north_africa, great_britain, n_europe, s_europe ));
+		scandinavia.adjacentTerritories 	= new ArrayList<Territory>(Arrays.asList( iceland, great_britain, n_europe, ukraine ));
+		ukraine.adjacentTerritories 		= new ArrayList<Territory>(Arrays.asList( scandinavia, n_europe, s_europe ));
 
 		
 		northAmerica = new ArrayList<Territory>(Arrays.asList( quebec, ontario, eastern_us, western_us, alaska, alberta, 
 															   nw_territory, greenland, cent_america ));
 		southAmerica = new ArrayList<Territory>(Arrays.asList( peru, brazil, venezuela, argentina ));
 		africa = new ArrayList<Territory>(Arrays.asList( north_africa, egypt, south_africa, east_africa, congo, madagascar ));
+		europe = new ArrayList<Territory>(Arrays.asList( iceland, great_britain, n_europe, s_europe, w_europe, scandinavia, ukraine ));
+
 		
 		continents.add(northAmerica);
 		continents.add(southAmerica);
 		continents.add(africa);
+		continents.add(europe);
 		
 		map = new ArrayList<Territory>(Arrays.asList( quebec, ontario, eastern_us, western_us, alaska, alberta, 
 				   nw_territory, greenland, cent_america, peru, brazil, venezuela, argentina,
-				   north_africa, egypt, south_africa, east_africa, congo, madagascar ));
+				   north_africa, egypt, south_africa, east_africa, congo, madagascar,
+				   iceland, great_britain, n_europe, s_europe, w_europe, scandinavia, ukraine));
 
 		return map;
 	}
@@ -149,6 +180,7 @@ public class Map {
 	}
 
 	static boolean reinforceTerritoryWithUnits(String territoryName, Player player, int nbUnits, ArrayList<Territory> territories){
+		
 		for(Territory t : territories){
 			if(t.name == territoryName){
 				// make sure the player can assign units 
@@ -196,7 +228,15 @@ public class Map {
 				if(nbTerrCont == continent.size() && continent.equals(northAmerica)){
 					bonusUnits += 5;
 				} else if(nbTerrCont == continent.size() && continent.equals(southAmerica)){
+					bonusUnits += 2;
+				} else if(nbTerrCont == continent.size() && continent.equals(africa)){
 					bonusUnits += 3;
+				} else if(nbTerrCont == continent.size() && continent.equals(europe)){
+					bonusUnits += 5;
+				} else if(nbTerrCont == continent.size() && continent.equals(australia)){
+					bonusUnits += 2;
+				} else if(nbTerrCont == continent.size() && continent.equals(asia)){
+					bonusUnits += 7;
 				}
 			}
 		}

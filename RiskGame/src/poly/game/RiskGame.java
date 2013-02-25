@@ -36,6 +36,8 @@ public class RiskGame {
 	public void initTerritories(){
 		Map map = new Map();
 		territories = map.generate();
+		System.out.println("------- STARTING TERRITORIES DISTRIBUTION -------");
+
 	}
 
 	// Initialize players
@@ -64,7 +66,7 @@ public class RiskGame {
 		// Random player starts choosing his territory
 		currentPlayerIndex = random.nextInt(players.size());
 
-		int startingUnits = 35;
+		int startingUnits = 15;
 		for(Player p : players){
 			p.remainingUnits = startingUnits;
 			p.allTerritories = territories;
@@ -86,7 +88,9 @@ public class RiskGame {
 			} else {
 				System.out.println(currentPlayer.name + " tried to select " + territory + " but couldn't");
 			}
-		}    		  
+		}    
+		System.out.println();
+		System.out.println("------- ALL TERRITORIES DISTRIBUTED -------");
 	}
 
 	// Initial phase, place all remaining units until all players have 0
@@ -110,11 +114,13 @@ public class RiskGame {
 	
 					if(remainingUnitsThisRound == 0){
 						currentPlayerIndex = (currentPlayerIndex + 1)%players.size();
-						remainingUnitsThisRound = 3;
-						
-						if(currentPlayer.remainingUnits - remainingUnitsThisRound <= 0){
+						currentPlayer = players.get(currentPlayerIndex);
+						if(currentPlayer.remainingUnits >= 3){
+							remainingUnitsThisRound = 3;
+						} else {
 							remainingUnitsThisRound = currentPlayer.remainingUnits;
 						}
+	
 					}
 				} else{
 					System.out.println("An error occured");
@@ -126,6 +132,9 @@ public class RiskGame {
 			}
 		}
 		System.out.println("Initialization all done!");
+		System.out.println();
+		System.out.println("------- FIRST TURN -------");
+
 	}
 
 	// Check if all players have placed all of their units
@@ -137,7 +146,7 @@ public class RiskGame {
 	}
 
 	private void playGame(){
-		Scanner scan = new Scanner(System.in);
+		//Scanner scan = new Scanner(System.in);
 		
 		// Random first turn pick
 		currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
