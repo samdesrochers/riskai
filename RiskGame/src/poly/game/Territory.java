@@ -45,4 +45,12 @@ public class Territory {
 		this.isOccupied = true;
 		this.owner = owner;
 	}
+	
+	public void removeUnits(int u){
+		this.units -= u;
+	}
+	
+	public void addUnits(int u){
+		this.units += u;
+	}
 }

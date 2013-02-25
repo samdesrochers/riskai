@@ -65,7 +65,7 @@ public class RiskGame {
 		// Random player starts choosing his territory
 		currentPlayerIndex = random.nextInt(players.size());
 
-		int startingUnits = 15;
+		int startingUnits = 35;
 		for(Player p : players){
 			p.remainingUnits = startingUnits;
 			p.allTerritories = territories;
@@ -152,7 +152,7 @@ public class RiskGame {
 		currentPlayer = players.get(currentPlayerIndex);
 		
 		int i = 0;
-		while(i < 3){
+		while(i < 6){
 			//String userInput = scan.nextLine();
 			//System.out.println(userInput);
 				
@@ -164,6 +164,7 @@ public class RiskGame {
 			currentPlayer = players.get(currentPlayerIndex);
 			i++;
 		}
+		System.out.println("Game Over!");
 	}
 	
 	private void executeTurn(){
@@ -188,34 +189,45 @@ public class RiskGame {
 	
 	private void executeAttackPhase(){
 		
+		// Analyze board situation when about to enter combat (AI) 
+		currentPlayer.combatAnalysis(0,0);
+		
 		// Check if the player wants to attack
 		while(currentPlayer.isAttacking()){
+	
 			Territory attacker;
 			
 			// Try to get an attacking territory
 			if((attacker = currentPlayer.getAttackingTerritory()) != null){
 				
 				// Get the defending territory
-				Territory defender = currentPlayer.getTargetTerritory(attacker);
+				Territory defender = currentPlayer.getTargetTerritory();
 				
-				// Get the amount of units used for this fight
-				int units = currentPlayer.getNbOfAttackingUnits(attacker);
+				// Get the amount of units used for this fight (MAXIMUM 3, MINIMUM 1)
+				int units = currentPlayer.getNbOfAttackingUnits();
 				
-				if(attacker.name != defender.name && units > 0){
-					
-					// Launch the attack
-					BattleManager.executeAttackPhase(attacker, defender, units);
+				// Check if number of units is legal
+				if(units <= 3 && units >= 1){
+					if(attacker.name != defender.name){
+						int[] unitsLost;
+						unitsLost = BattleManager.executeAttackPhase(attacker, defender, units);
+						
+						// Analyze the outcome of the last combat round (AI)
+						// passing the currentPlayer lost units and the defending player lost units
+						// for results analysis or else
+						currentPlayer.combatAnalysis(unitsLost[0], unitsLost[1]);
+					}
+				} else {
+					System.out.println("Too many or too few units chosen : "+units);
 				}
 			} else {
 				System.out.println("No territory was chosen thus no attack");
-			}
-			
-			
+			}		
 		}
 	}
 	
 	private int calculateNbReinforcements(){
-		int num = 3;
+		int num = 15;
 		
 		num += Map.getContinentReinforcements(currentPlayer.occupiedTerritories);
 		

@@ -5,12 +5,20 @@ import java.util.Random;
 public class PlayerSam extends Player {
 
 	private Random ran;
+	
+	// Territory from which we are attacking
 	protected Territory attacker;
+	
+	// Territory we are attacking
 	private Territory target;
+	
+	// Number of units we want to attack with (MAX 3 per round)
+	private int attackingUnits;
 	
 	public PlayerSam(String name) {
 		super(name);
 		ran = new Random();
+		attackingUnits = 0;
 	}
 
 	@Override
@@ -56,14 +64,44 @@ public class PlayerSam extends Player {
 		this.remainingUnits -= ru;
 	}
 
+	// Takes the decision of attacking or not in this function
 	public boolean isAttacking() {
 		
-		// Always attack!
-		return true;
+		chooseAttackerAndTarget();
+		chooseAttackingUnits();
+		if(this.attacker != null && this.attackingUnits > 0){
+			return true;
+		}
+		return false;
+	}
+
+	// Getters and setters for the automatic combat process 
+	@Override
+	public Territory getAttackingTerritory() {
+		return this.attacker;
 	}
 
 	@Override
-	public Territory getAttackingTerritory() {
+	public Territory getTargetTerritory() {
+		return this.target;
+	}
+
+	@Override
+	public int getNbOfAttackingUnits() {
+		return this.attackingUnits;
+	}
+
+	// Analyze what happened after a combat round (AI)
+	@Override
+	public void combatAnalysis(int myLostUntis, int enemyLostUnits) {
+		// TODO Auto-generated method stub
+		System.out.println("I ("+name+") lost "+myLostUntis+" units VS "+enemyLostUnits);
+		this.attacker = null;
+	}
+
+	// Decides which territory to attack from and what territory to attack.  MUST be adjacents :)
+	@Override
+	public void chooseAttackerAndTarget() {
 		int numberTerritoriesChecked = 0;
 		while(numberTerritoriesChecked < occupiedTerritories.size()){
 			
@@ -74,26 +112,27 @@ public class PlayerSam extends Player {
 			// Check all adjacent territories and try to find an enemy
 			for(Territory t : attacker.adjacentTerritories){
 				if(t.getOwner().name != attacker.getOwner().name){
-					target = t;
-					return attacker;
+					this.target = t;
+					this.attacker = attacker;
 				}
 			}
 			// Go to next territory if not
 			numberTerritoriesChecked ++;
 		}
-		return null;
 	}
 
+	// Decides how many units to send for this round (MAX is 3, minimum is 1, 0 cancels the attack)
 	@Override
-	public Territory getTargetTerritory(Territory originTerritory) {
-		return target;
-	}
-
-	@Override
-	public int getNbOfAttackingUnits(Territory attackingTerritory) {
-		if(attackingTerritory.getUnits() - 1 > 0){
-			return attackingTerritory.getUnits() - 1;
+	public void chooseAttackingUnits() {
+		// Attack without leaving the territory empty
+		if(this.attacker.getUnits() >= 4 ){
+			this.attackingUnits = 3;
+		} else if(this.attacker.getUnits() >= 3 ){
+			this.attackingUnits = 2;
+		} else if(this.attacker.getUnits() >= 2 ){
+			this.attackingUnits = 1;
+		} else {
+			this.attackingUnits = 0;
 		}
-		return 0;
 	}
 }

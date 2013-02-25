@@ -19,7 +19,7 @@ public abstract class Player {
 	}
 	
 	public abstract void updateModel();
-	
+		
 	// Picks a territory (initial round)
 	public abstract String chooseTerritory();
 	
@@ -35,17 +35,35 @@ public abstract class Player {
 	// Return true if the player will attack 
 	public abstract boolean isAttacking();
 
+	// Getters and setters
 	public abstract Territory getAttackingTerritory();
 	
-	public abstract Territory getTargetTerritory(Territory originTerritory);
+	public abstract Territory getTargetTerritory();
 	
-	public abstract int getNbOfAttackingUnits(Territory attackingTerritory);
+	public abstract int getNbOfAttackingUnits();
+	
+	// Internal decision functions, picking an attacking territory, a target, and how many units to send
+	protected abstract void chooseAttackerAndTarget();
+	
+	protected abstract void chooseAttackingUnits();
+	
+	protected abstract void combatAnalysis(int myLostUntis, int enemyLostUnits);
 
 	public boolean isAlive(){
 		if(occupiedTerritories.size() == 0){
 			return false;
 		}
 		return true;
+		
+	}
+	
+	// Gets the total number of units of our player
+	protected int countUnits(){
+		int units = 0;
+		for( Territory t : occupiedTerritories){
+			units += t.getUnits();
+		}
+		return units;
 		
 	}
 	
