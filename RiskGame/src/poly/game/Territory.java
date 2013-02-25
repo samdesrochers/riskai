@@ -9,6 +9,7 @@ public class Territory {
 	private int units;
 	public String continent = "None";
 	public String name = "None";
+	public int value = 0;	// Heuristic value of some sort
 	public boolean isOccupied = false;
 	
 	public Territory(String cont, String nm){

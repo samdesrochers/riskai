@@ -2,7 +2,6 @@ package poly.game;
 
 import java.util.ArrayList;
 import java.util.Random;
-import java.util.Scanner;
 
 public class RiskGame {
 
@@ -13,7 +12,7 @@ public class RiskGame {
 	public static final int PHASE_MOVE_ARMIES 	= 4;
 	public static final int PHASE_BONUS 		= 5;
 
-	public ArrayList<Player> 			players;
+	public ArrayList<Player> 				players;
 	public ArrayList<Territory> 		territories;
 
 	public Player currentPlayer;
@@ -168,16 +167,51 @@ public class RiskGame {
 	}
 	
 	private void executeTurn(){
+		// Acquire and Place new reinforcements
+		executeReinforcementsPhase();
 		
+		// Attack other territories
+		executeAttackPhase();
+
+	}
+	
+	private void executeReinforcementsPhase(){
 		int newReinforcements = calculateNbReinforcements();
 		currentPlayer.remainingUnits = newReinforcements;
 		
 		while(currentPlayer.remainingUnits > 0){
-			// Place all new units
 			currentPlayer.assignReinforcements();
 		}
 		currentPlayer.printTerritories();
 
+	}
+	
+	private void executeAttackPhase(){
+		
+		// Check if the player wants to attack
+		while(currentPlayer.isAttacking()){
+			Territory attacker;
+			
+			// Try to get an attacking territory
+			if((attacker = currentPlayer.getAttackingTerritory()) != null){
+				
+				// Get the defending territory
+				Territory defender = currentPlayer.getTargetTerritory(attacker);
+				
+				// Get the amount of units used for this fight
+				int units = currentPlayer.getNbOfAttackingUnits(attacker);
+				
+				if(attacker.name != defender.name && units > 0){
+					
+					// Launch the attack
+					BattleManager.executeAttackPhase(attacker, defender, units);
+				}
+			} else {
+				System.out.println("No territory was chosen thus no attack");
+			}
+			
+			
+		}
 	}
 	
 	private int calculateNbReinforcements(){

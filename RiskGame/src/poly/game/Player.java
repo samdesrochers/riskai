@@ -29,9 +29,18 @@ public abstract class Player {
 	// reinforce a territory (initial round)
 	public abstract String pickReinforceTerritory();
 	
-	// Assign part of remaining reinforcements
+	// Assign part of remaining reinforcements 
 	public abstract void assignReinforcements();
 	
+	// Return true if the player will attack 
+	public abstract boolean isAttacking();
+
+	public abstract Territory getAttackingTerritory();
+	
+	public abstract Territory getTargetTerritory(Territory originTerritory);
+	
+	public abstract int getNbOfAttackingUnits(Territory attackingTerritory);
+
 	public boolean isAlive(){
 		if(occupiedTerritories.size() == 0){
 			return false;
