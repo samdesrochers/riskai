@@ -26,6 +26,8 @@ public abstract class Player {
 	// Number of units we want to attack with (MAX 3 per round)
 	protected int attackingUnits;
 	
+	// Number of territories owned
+	public int numberOfTerritories;
 	
 	
 	/*

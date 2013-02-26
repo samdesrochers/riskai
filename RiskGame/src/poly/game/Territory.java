@@ -28,6 +28,13 @@ public class Territory {
 			System.out.print(t.name + " ");
 		}
 	}
+	
+	public void conquerTerritory(Player newP, Territory t){
+		System.out.println(newP.name + " conquered " + t.getOwner().name +" territory : "+t.name);
+		t.getOwner().occupiedTerritories.remove(t);
+		t.setOwner(newP);
+		newP.occupiedTerritories.add(t);
+	}
 
 	public int getUnits() {
 		return units;

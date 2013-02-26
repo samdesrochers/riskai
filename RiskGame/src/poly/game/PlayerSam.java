@@ -13,7 +13,7 @@ public class PlayerSam extends Player {
 
 	@Override
 	public void updateModel() {
-
+		numberOfTerritories = occupiedTerritories.size() - 1;
 	}
 
 	@Override
@@ -61,6 +61,19 @@ public class PlayerSam extends Player {
 			System.out.println(name+" lost "+myLostUntis+" units VS "+enemyLostUnits);
 		}
 		System.out.println();
+		
+		int currentTerritoriesCount = occupiedTerritories.size() - 1;
+		// Check if we got a new territory
+		if (currentTerritoriesCount > numberOfTerritories && this.attacker != null && this.target != null){
+			//Assign units to the new territory we got last round (refereed as target*)
+			// Note : this could be any number as long as there is at least one remaining
+			// unit on the attacking territory.
+			this.target.addUnits(this.attacker.getUnits() -1);
+			System.out.println("New units originating from :" +this.attacker.name +" which has " + this.attacker.getUnits());
+			System.out.println("New territory :"+target.name +" now has " + target.getUnits() + " units" );
+		}
+		
+		numberOfTerritories = currentTerritoriesCount;
 		this.attacker = null;
 	}
 

@@ -198,6 +198,8 @@ public class RiskGame {
 	
 			Territory attacker;
 			
+			currentPlayer.updateModel();
+			
 			// Try to get an attacking territory
 			if((attacker = currentPlayer.getAttackingTerritory()) != null){
 				
@@ -216,7 +218,7 @@ public class RiskGame {
 						// Analyze the outcome of the last combat round (AI)
 						// passing the currentPlayer lost units and the defending player lost units
 						// for results analysis or else
-						currentPlayer.combatAnalysis(unitsLost[1], unitsLost[0]);
+						currentPlayer.combatAnalysis(unitsLost[0], unitsLost[1]);
 					}
 				} else {
 					System.out.println("Too many or too few units chosen : "+units);

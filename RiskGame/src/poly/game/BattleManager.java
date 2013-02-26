@@ -10,7 +10,7 @@ public class BattleManager {
 		Random ran = new Random();
 		
 		logAttackBegin(attacker, defender, attackingUnits);
-		System.out.println("Defender has " + defender.getUnits() + " total units on territory");
+		System.out.println("Defender has " + defender.getUnits() + " total units on "+ defender.name);
 		int attackerLostUnits = 0;
 		int defenderLostUnits = 0;
 		
@@ -60,11 +60,11 @@ public class BattleManager {
 			if(defenderRolls[j] >= attackerRolls[i]){
 				System.out.println("ATT = "+attackerRolls[i]+" DEF = "+defenderRolls[j]+" | Defender wins");
 				iterations--;
-				defenderLostUnits ++;
+				attackerLostUnits ++;
 			} else if (attackerRolls[i] > defenderRolls[j]){
 				System.out.println("ATT = "+attackerRolls[i]+" DEF = "+defenderRolls[j]+" | Attacker wins");
 				iterations--;
-				attackerLostUnits ++;
+				defenderLostUnits ++;
 			}
 			i--; j--;
 		}
@@ -74,12 +74,16 @@ public class BattleManager {
 		unitsLost[1] = defenderLostUnits; // Defender units lost
 
 		attacker.removeUnits(attackerLostUnits);
-		//defender.removeUnits(defenderLostUnits);
+		defender.removeUnits(defenderLostUnits);
+		
+		if(defender.getUnits() == 0){
+			defender.conquerTerritory(attacker.getOwner(), defender);
+		} else if (defender.getUnits() < 0){
+			System.out.println("Error nb of units");
+		}
 		
 		return unitsLost;
 	}
-
-	
 	
 	private static void logAttackBegin(Territory attacker, Territory defender, int attackingUnits){
 		System.out.println();
