@@ -34,7 +34,7 @@ public class Territory {
 	}
 
 	public void setUnits(int units) {
-		this.units += units;
+		this.units = units;
 	}
 
 	public Player getOwner() {

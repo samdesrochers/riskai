@@ -5,20 +5,10 @@ import java.util.Random;
 public class PlayerSam extends Player {
 
 	private Random ran;
-	
-	// Territory from which we are attacking
-	protected Territory attacker;
-	
-	// Territory we are attacking
-	private Territory target;
-	
-	// Number of units we want to attack with (MAX 3 per round)
-	private int attackingUnits;
-	
 	public PlayerSam(String name) {
 		super(name);
 		ran = new Random();
-		attackingUnits = 0;
+		this.attackingUnits = 0;
 	}
 
 	@Override
@@ -33,90 +23,83 @@ public class PlayerSam extends Player {
 				return t.name;
 			}
 		}
-		return "problem";
+		return "VICTORY (or problem)";
 	}
 
 	@Override
 	public int chooseNbOfUnits(int remainingThisTurn) {
 		// Random nb of units between 1 and the remaining units placable this turn (3 being the max)
-		int r = ran.nextInt(remainingThisTurn) + 1;
+		int r = ran.nextInt(remainingThisTurn) + 1; 
 		return r;
 	}
 
 	public String pickReinforceTerritory() {
 		int r = ran.nextInt(occupiedTerritories.size());
 		Territory pick = occupiedTerritories.get(r);
-		
+
 		return pick.name;
 	}
 
 	public void assignReinforcements() {
 		//random territory
 		int rt = ran.nextInt(occupiedTerritories.size());
-		
+
 		// random nb of units
 		int ru = ran.nextInt(this.remainingUnits) + 1;
 
 		// assign random nb of units on the random territory
 		Territory pick = occupiedTerritories.get(rt);
 		pick.setUnits(ru);
-		
+
 		this.remainingUnits -= ru;
-	}
-
-	// Takes the decision of attacking or not in this function
-	public boolean isAttacking() {
-		
-		chooseAttackerAndTarget();
-		chooseAttackingUnits();
-		if(this.attacker != null && this.attackingUnits > 0){
-			return true;
-		}
-		return false;
-	}
-
-	// Getters and setters for the automatic combat process 
-	@Override
-	public Territory getAttackingTerritory() {
-		return this.attacker;
-	}
-
-	@Override
-	public Territory getTargetTerritory() {
-		return this.target;
-	}
-
-	@Override
-	public int getNbOfAttackingUnits() {
-		return this.attackingUnits;
 	}
 
 	// Analyze what happened after a combat round (AI)
 	@Override
 	public void combatAnalysis(int myLostUntis, int enemyLostUnits) {
-		// TODO Auto-generated method stub
-		System.out.println("I ("+name+") lost "+myLostUntis+" units VS "+enemyLostUnits);
+		if(myLostUntis != 0 || enemyLostUnits  != 0){
+			System.out.println(name+" lost "+myLostUntis+" units VS "+enemyLostUnits);
+		}
+		System.out.println();
 		this.attacker = null;
 	}
 
-	// Decides which territory to attack from and what territory to attack.  MUST be adjacents :)
+	// Return true if the player will attack; decided by the AI 
+	@Override // (SHOULDN'T NEED TO REIMPLEMENT)
+	public boolean isAttacking() {		
+		// Assign the territories
+		chooseAttackerAndTarget();
+
+		// Get the number of units to use for this round of attack
+		if(this.attacker != null && this.target != null){
+			chooseAttackingUnits();
+			if(this.attackingUnits > 0){
+				// Attack will go on
+				return true;
+			}
+		}
+		// Won't attack, ends the attack phase for the player
+		return false;
+	}
+
+	// Decides which territory to attack from and what territory to attack.  MUST be adjacent :)
 	@Override
 	public void chooseAttackerAndTarget() {
 		int numberTerritoriesChecked = 0;
 		while(numberTerritoriesChecked < occupiedTerritories.size()){
-			
-			// try a random territory
+
+			// try a random territory in what we occupy
 			int rt = ran.nextInt(occupiedTerritories.size());
 			Territory attacker = occupiedTerritories.get(rt);
-			
+
 			// Check all adjacent territories and try to find an enemy
-			for(Territory t : attacker.adjacentTerritories){
-				if(t.getOwner().name != attacker.getOwner().name){
-					this.target = t;
+			for(Territory target : attacker.adjacentTerritories){
+				if(target.getOwner().name != attacker.getOwner().name && attacker.getUnits() > 1){
+					this.target = target;
 					this.attacker = attacker;
 				}
 			}
-			// Go to next territory if not
+			// Go to next territory if not possible for current territory
 			numberTerritoriesChecked ++;
 		}
 	}
@@ -132,7 +115,7 @@ public class PlayerSam extends Player {
 		} else if(this.attacker.getUnits() >= 2 ){
 			this.attackingUnits = 1;
 		} else {
-			this.attackingUnits = 0;
+			this.attackingUnits = 0; // Attack cancelled
 		}
 	}
 }

@@ -2,6 +2,7 @@ package poly.game;
 
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.Scanner;
 
 public class RiskGame {
 
@@ -65,7 +66,7 @@ public class RiskGame {
 		// Random player starts choosing his territory
 		currentPlayerIndex = random.nextInt(players.size());
 
-		int startingUnits = 35;
+		int startingUnits = 15;
 		for(Player p : players){
 			p.remainingUnits = startingUnits;
 			p.allTerritories = territories;
@@ -132,8 +133,8 @@ public class RiskGame {
 		}
 		System.out.println("Initialization all done!");
 		System.out.println();
-		System.out.println("------- FIRST TURN -------");
-
+		System.out.println("************* FIRST TURN ****************");
+		System.out.println();
 	}
 
 	// Check if all players have placed all of their units
@@ -145,7 +146,7 @@ public class RiskGame {
 	}
 
 	private void playGame(){
-		//Scanner scan = new Scanner(System.in);
+		Scanner scan = new Scanner(System.in);
 		
 		// Random first turn pick
 		currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
@@ -153,8 +154,8 @@ public class RiskGame {
 		
 		int i = 0;
 		while(i < 6){
-			//String userInput = scan.nextLine();
-			//System.out.println(userInput);
+			String userInput = scan.nextLine();
+			System.out.println(userInput);
 				
 			// Execute the turn for currentPlayer
 			executeTurn();
@@ -215,7 +216,7 @@ public class RiskGame {
 						// Analyze the outcome of the last combat round (AI)
 						// passing the currentPlayer lost units and the defending player lost units
 						// for results analysis or else
-						currentPlayer.combatAnalysis(unitsLost[0], unitsLost[1]);
+						currentPlayer.combatAnalysis(unitsLost[1], unitsLost[0]);
 					}
 				} else {
 					System.out.println("Too many or too few units chosen : "+units);
@@ -224,6 +225,7 @@ public class RiskGame {
 				System.out.println("No territory was chosen thus no attack");
 			}		
 		}
+		System.out.println("End of the attack phase -----------------");
 	}
 	
 	private int calculateNbReinforcements(){

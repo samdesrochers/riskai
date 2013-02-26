@@ -160,7 +160,7 @@ public class Map {
 				if(!t.isOccupied){
 					player.occupiedTerritories.add(t);
 					t.setOwner(player);
-					t.setUnits(nbUnits);
+					t.addUnits(nbUnits);
 					return true;
 				}
 				else {
@@ -185,7 +185,7 @@ public class Map {
 			if(t.name == territoryName){
 				// make sure the player can assign units 
 				if(player == t.getOwner()){
-					t.setUnits(nbUnits);
+					t.addUnits(nbUnits);
 					player.remainingUnits -= nbUnits;
 					return true;
 				}
