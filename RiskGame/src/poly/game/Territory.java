@@ -5,10 +5,11 @@ import java.util.ArrayList;
 public class Territory {
 	
 	private Player owner;
-	public ArrayList<Territory> adjacentTerritories;
-	private int units;
-	public String continent = "None";
 	public String name = "None";
+	private int units;
+	public ArrayList<Territory> adjacentTerritories;
+	public String continent = "None";
+	
 	public int value = 0;	// Heuristic value of some sort
 	public boolean isOccupied = false;
 	

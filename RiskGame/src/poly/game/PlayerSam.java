@@ -8,31 +8,30 @@ public class PlayerSam extends Player {
 	public PlayerSam(String name) {
 		super(name);
 		ran = new Random();
-		this.attackingUnits = 0;
 	}
 
-	@Override
-	public void updateModel() {
-		numberOfTerritories = occupiedTerritories.size() - 1;
-	}
-
-	@Override
+	/*******************************************************
+	 * 
+	 *  DEPLOYEMENT PHASE METHODS
+	 * 
+	 ******************************************************/
+	
+	// Picks the next non occupied territory (TO IMPLEMENT)
 	public String chooseTerritory() {
 		for(Territory t : allTerritories){
 			if(!t.isOccupied){
 				return t.name;
 			}
 		}
-		return "VICTORY (or problem)";
+		return "error";
 	}
 
-	@Override
 	public int chooseNbOfUnits(int remainingThisTurn) {
 		// Random nb of units between 1 and the remaining units placable this turn (3 being the max)
 		int r = ran.nextInt(remainingThisTurn) + 1; 
 		return r;
 	}
-
+	
 	public String pickReinforceTerritory() {
 		int r = ran.nextInt(occupiedTerritories.size());
 		Territory pick = occupiedTerritories.get(r);
@@ -40,6 +39,13 @@ public class PlayerSam extends Player {
 		return pick.name;
 	}
 
+	/*******************************************************
+	 * 
+	 *  REINFORCEMENT PHASE METHODS
+	 * 
+	 ******************************************************/
+	
+	// REINFORCEMENT Phase, assign between 1 and 3 reinforcements
 	public void assignReinforcements() {
 		//random territory
 		int rt = ran.nextInt(occupiedTerritories.size());
@@ -49,66 +55,49 @@ public class PlayerSam extends Player {
 
 		// assign random nb of units on the random territory
 		Territory pick = occupiedTerritories.get(rt);
-		pick.setUnits(ru);
+		pick.addUnits(ru);
 
 		this.remainingUnits -= ru;
 	}
 
-	// Analyze what happened after a combat round (AI)
-	@Override
-	public void combatAnalysis(int myLostUntis, int enemyLostUnits) {
-		if(myLostUntis != 0 || enemyLostUnits  != 0){
-			System.out.println(name+" lost "+myLostUntis+" units VS "+enemyLostUnits);
-		}
-		System.out.println();
+	/*******************************************************
+	 * 
+	 *  COMBAT PHASE METHODS
+	 *  
+	 *  To perfom an attack, a player must : 
+	 *  1. Set [this.willAttack] to true
+	 *  1. Choose an attacking and target territories [this.attacker] & [this.target]
+	 *  2. Choose how many units to send, picked from this.attacker and set to [this.attackingUnits]
+	 *  * All (I hope so) values will be checked for integrity ( != null or 0 )
+	 * 
+	 ******************************************************/
+	
+	// Only called before preparing a combat round
+	public void updateModel() {
+		super.updateModel();
 		
-		int currentTerritoriesCount = occupiedTerritories.size() - 1;
-		// Check if we got a new territory
-		if (currentTerritoriesCount > numberOfTerritories && this.attacker != null && this.target != null){
-			//Assign units to the new territory we got last round (refereed as target*)
-			// Note : this could be any number as long as there is at least one remaining
-			// unit on the attacking territory.
-			this.target.addUnits(this.attacker.getUnits() -1);
-			System.out.println("New units originating from :" +this.attacker.name +" which has " + this.attacker.getUnits());
-			System.out.println("New territory :"+target.name +" now has " + target.getUnits() + " units" );
+		if(ran.nextInt(25) > 1){
+			this.willAttack = true;
+		} else {
+			this.willAttack = false;
 		}
-		
-		numberOfTerritories = currentTerritoriesCount;
-		this.attacker = null;
-	}
-
-	// Return true if the player will attack; decided by the AI 
-	@Override // (SHOULDN'T NEED TO REIMPLEMENT)
-	public boolean isAttacking() {		
-		// Assign the territories
-		chooseAttackerAndTarget();
-
-		// Get the number of units to use for this round of attack
-		if(this.attacker != null && this.target != null){
-			chooseAttackingUnits();
-			if(this.attackingUnits > 0){
-				// Attack will go on
-				return true;
-			}
-		}
-		// Won't attack, ends the attack phase for the player
-		return false;
 	}
 
 	// Decides which territory to attack from and what territory to attack.  MUST be adjacent :)
-	@Override
 	public void chooseAttackerAndTarget() {
 		int numberTerritoriesChecked = 0;
-		while(numberTerritoriesChecked < occupiedTerritories.size()){
+		
+		while(numberTerritoriesChecked < occupiedTerritories.size() - 1){
 
 			// try a random territory in what we occupy
 			int rt = ran.nextInt(occupiedTerritories.size());
 			Territory attacker = occupiedTerritories.get(rt);
 
 			// Check all adjacent territories and try to find an enemy
-			for(Territory target : attacker.adjacentTerritories){
-				if(target.getOwner().name != attacker.getOwner().name && attacker.getUnits() > 1){
-					this.target = target;
+			for(int i = 0; i < attacker.adjacentTerritories.size(); i++){
+					Territory t = attacker.adjacentTerritories.get(i);
+				if(t.getOwner().name != attacker.getOwner().name && attacker.getUnits() > 1){
+					this.target = t; // Bug aux pays frontieres en raison du 1 unit
 					this.attacker = attacker;
 				}
 			}
@@ -118,9 +107,8 @@ public class PlayerSam extends Player {
 	}
 
 	// Decides how many units to send for this round (MAX is 3, minimum is 1, 0 cancels the attack)
-	@Override
 	public void chooseAttackingUnits() {
-		// Attack without leaving the territory empty
+		// Attack with full capacity without leaving the territory empty
 		if(this.attacker.getUnits() >= 4 ){
 			this.attackingUnits = 3;
 		} else if(this.attacker.getUnits() >= 3 ){
@@ -130,5 +118,18 @@ public class PlayerSam extends Player {
 		} else {
 			this.attackingUnits = 0; // Attack cancelled
 		}
+	}
+	
+	// TO IMPLEMENT (AI) : called when finishing a combat round
+	public void postCombatUpdateModel(int myLostUntis, int enemyLostUnits) {
+		
+	}
+
+	// TO IMPLEMENT (AI) : called when our player wins a new territory (which was the targeted territory)
+	public void didGainNewTerritory(Territory conqueredTerritory) {
+		// Add all units from the attacking territory to the new we just conquered
+		// (MUST leave at least one on the territory we attacked with)
+		conqueredTerritory.setUnits(this.attacker.getUnits() -1);
+		this.attacker.setUnits(1);
 	}
 }

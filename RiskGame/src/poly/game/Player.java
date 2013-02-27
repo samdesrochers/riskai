@@ -14,6 +14,9 @@ public abstract class Player {
 	// List of all the territories of every players
 	public ArrayList<Territory> allTerritories;
 	
+	// List of all the territories of every players
+	public ArrayList<Card> cards;
+	
 	// Number of units available for one turn
 	public int remainingUnits;
 	
@@ -29,16 +32,24 @@ public abstract class Player {
 	// Number of territories owned
 	public int numberOfTerritories;
 	
+	// Will the player attack this round
+	public boolean willAttack;
 	
 	/*
 	 * Generic Player functions
 	 */
 	public Player(String name){
 		this.name = name;
+		this.willAttack = false;
+		this.attackingUnits = 0;
+		this.cards = new ArrayList<Card>();
+		this.occupiedTerritories = new ArrayList<Territory>();
 	}
 	
-	// TO IMPLEMENT
-	public abstract void updateModel();
+	// TO subsclass
+	public void updateModel() {
+		this.numberOfTerritories = this.occupiedTerritories.size() - 1;
+	}
 		
 	// Picks a territory (initial round)
 	// TO IMPLEMENT
@@ -57,7 +68,24 @@ public abstract class Player {
 	public abstract void assignReinforcements();
 	
 	// Return true if the player will attack; decided by the AI (DO NOT RE-IMPLEMENT)
-	public abstract boolean isAttacking();
+	public boolean prepareCombat() {		
+		// Assign the territories
+		chooseAttackerAndTarget();
+		// Get the number of units to use for this round of attack
+		if(this.attacker != null && this.target != null){
+			chooseAttackingUnits();
+			if(this.attackingUnits > 0 && this.attackingUnits <= this.attacker.getUnits()-1){
+				// Attack will go on
+				return true;
+			} else {
+				//System.out.println("Aborting combat preparation : bad units count");
+			}
+		} else {
+			//System.out.println("Aborting combat preparation : no attacker or target territories");
+		}
+		// failed to prepare combat properly
+		return false;
+	}
 
 	// Getters and setters for the automatic combat process 
 	public Territory getAttackingTerritory() {
@@ -79,9 +107,39 @@ public abstract class Player {
 	// TO IMPLEMENT
 	protected abstract void chooseAttackingUnits();
 	
+	// Do not override
+	public void combatAnalysis(int myLostUntis, int enemyLostUnits) {
+		if(myLostUntis != 0 || enemyLostUnits  != 0){
+			System.out.println(name+" lost "+myLostUntis+" units VS "+enemyLostUnits);
+		}
+		System.out.println();
+		
+		// Update our post combat model AI
+		this.postCombatUpdateModel(myLostUntis, enemyLostUnits);
+		
+		int currentTerritoriesCount = occupiedTerritories.size() - 1;
+		// Check if we got a new territory
+		if (currentTerritoriesCount > numberOfTerritories && this.attacker != null && this.target != null){
+			// Assign units to the new territory we got last round (refereed as target*)
+			// Note : this could be any number as long as there is at least one remaining
+			// unit on the attacking territory.
+			this.didGainNewTerritory(this.target);
+			System.out.println("New units originating from :" +this.attacker.name +" which has " + this.attacker.getUnits());
+			System.out.println("New territory :"+target.name +" now has " + target.getUnits() + " units" );
+		}
+		numberOfTerritories = currentTerritoriesCount;
+		
+		// Forgets the attacker when done (critical)
+		this.attacker = null;
+	}
+	
+	// Update the AI model according to how many units were lost 
 	// TO IMPLEMENT
-	protected abstract void combatAnalysis(int myLostUntis, int enemyLostUnits);
+	public abstract void postCombatUpdateModel(int myLostUntis, int enemyLostUnits);
 
+	// Signifies the player when he won a new territory
+	public abstract void didGainNewTerritory(Territory t);
+	
 	public boolean isAlive(){
 		if(occupiedTerritories.size() == 0){
 			return false;

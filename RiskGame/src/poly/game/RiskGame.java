@@ -19,6 +19,10 @@ public class RiskGame {
 	public Player currentPlayer;
 	public int currentPlayerIndex;
 
+	protected boolean isOver = false;
+	
+	protected static int STARTING_UNITS = 30;
+
 	// Entry point
 	public void startGame(){
 
@@ -27,7 +31,7 @@ public class RiskGame {
 		initTerritories();
 		ditributeTerritories();
 		placeRemainingUnits();
-		
+
 		// Game phase
 		playGame();
 	}
@@ -46,17 +50,16 @@ public class RiskGame {
 		currentPlayerIndex = -1;
 
 		Player sam 	= new PlayerSam("Sam");
-		Player sam2 = new PlayerSam("Gino");
-		Player sam3 = new PlayerSam("Bob");
-		
-		sam.occupiedTerritories = new ArrayList<Territory>();
-		sam2.occupiedTerritories = new ArrayList<Territory>();
-		sam3.occupiedTerritories = new ArrayList<Territory>();
+		Player sam2 = new PlayerSam("Emile");
+		Player sam3 = new PlayerSam("Pong");
+		Player sam4 = new PlayerSam("Maxim");
 
 		players.add(sam);
 		players.add(sam2);
 		players.add(sam3);
-		
+		players.add(sam4);
+
+
 	}
 
 	// Players each pick a territory one after the other
@@ -66,7 +69,7 @@ public class RiskGame {
 		// Random player starts choosing his territory
 		currentPlayerIndex = random.nextInt(players.size());
 
-		int startingUnits = 15;
+		int startingUnits = STARTING_UNITS;
 		for(Player p : players){
 			p.remainingUnits = startingUnits;
 			p.allTerritories = territories;
@@ -99,19 +102,19 @@ public class RiskGame {
 
 		while(!allUnitsPlaced()){
 			currentPlayer = players.get(currentPlayerIndex);
-			
+
 			// Check if the player still has reinforcements to place
 			if(currentPlayer.remainingUnits > 0){
-				
+
 				// Selection of the territory and with how many units
 				int nbReinforcement = currentPlayer.chooseNbOfUnits(remainingUnitsThisRound);
 				String territory = currentPlayer.pickReinforceTerritory();
-	
+
 				// Try to reinforce
 				if(Map.reinforceTerritoryWithUnits(territory, currentPlayer, nbReinforcement, territories)){
 					System.out.println(currentPlayer.name + " assigned " + nbReinforcement + " units on : " + territory);
 					remainingUnitsThisRound -= nbReinforcement;
-	
+
 					if(remainingUnitsThisRound == 0){
 						currentPlayerIndex = (currentPlayerIndex + 1)%players.size();
 						currentPlayer = players.get(currentPlayerIndex);
@@ -120,101 +123,107 @@ public class RiskGame {
 						} else {
 							remainingUnitsThisRound = currentPlayer.remainingUnits;
 						}
-	
+
 					}
 				} else{
 					System.out.println("An error occured");
 				}
-			
-			// No more reinforcements, player is out	
+
+				// No more reinforcements, player is out	
 			} else { 
 				currentPlayerIndex = (currentPlayerIndex + 1)%players.size();
 			}
 		}
 		System.out.println("Initialization all done!");
 		System.out.println();
-		System.out.println("************* FIRST TURN ****************");
-		System.out.println();
 	}
 
 	// Check if all players have placed all of their units
 	boolean allUnitsPlaced(){
-		if(players.get(0).remainingUnits == 0  && players.get(1).remainingUnits == 0 && players.get(2).remainingUnits == 0){
-			return true;
+		for(Player p : players){
+			if(p.remainingUnits == 0){
+				return true;
+			}
 		}
 		return false;
 	}
 
 	private void playGame(){
 		Scanner scan = new Scanner(System.in);
-		
+
 		// Random first turn pick
 		currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
 		currentPlayer = players.get(currentPlayerIndex);
-		
-		int i = 0;
-		while(i < 6){
-			String userInput = scan.nextLine();
-			System.out.println(userInput);
-				
+
+		while(!isOver){
+			//String userInput = scan.nextLine();
+
 			// Execute the turn for currentPlayer
 			executeTurn();
-			
+
 			// Next player
 			currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
 			currentPlayer = players.get(currentPlayerIndex);
-			i++;
 		}
 		System.out.println("Game Over!");
 	}
-	
+
 	private void executeTurn(){
+
+		int currentNbTerritories = currentPlayer.occupiedTerritories.size() - 1;
+		
 		// Acquire and Place new reinforcements
 		executeReinforcementsPhase();
 		
 		// Attack other territories
 		executeAttackPhase();
 
+		// Hand out a card if necessary
+		executePostAttackPhase(currentNbTerritories);
+
+		executeGameOverCheck();
+
 	}
-	
+
 	private void executeReinforcementsPhase(){
 		int newReinforcements = calculateNbReinforcements();
 		currentPlayer.remainingUnits = newReinforcements;
-		
+		System.out.println("-------- Reinforcement --------");
+		System.out.println(currentPlayer.name + " Recieved : "+newReinforcements + " new units");
+
 		while(currentPlayer.remainingUnits > 0){
 			currentPlayer.assignReinforcements();
 		}
 		currentPlayer.printTerritories();
 
 	}
-	
+
 	private void executeAttackPhase(){
-		
+
 		// Analyze board situation when about to enter combat (AI) 
-		currentPlayer.combatAnalysis(0,0);
-		
+		currentPlayer.updateModel();
+
 		// Check if the player wants to attack
-		while(currentPlayer.isAttacking()){
-	
+		while(currentPlayer.willAttack){
+
+			currentPlayer.prepareCombat();
 			Territory attacker;
-			
-			currentPlayer.updateModel();
-			
+
 			// Try to get an attacking territory
 			if((attacker = currentPlayer.getAttackingTerritory()) != null){
-				
+
 				// Get the defending territory
 				Territory defender = currentPlayer.getTargetTerritory();
-				
+
 				// Get the amount of units used for this fight (MAXIMUM 3, MINIMUM 1)
 				int units = currentPlayer.getNbOfAttackingUnits();
-				
+
 				// Check if number of units is legal
 				if(units <= 3 && units >= 1){
 					if(attacker.name != defender.name){
 						int[] unitsLost;
 						unitsLost = BattleManager.executeAttackPhase(attacker, defender, units);
-						
+
 						// Analyze the outcome of the last combat round (AI)
 						// passing the currentPlayer lost units and the defending player lost units
 						// for results analysis or else
@@ -224,38 +233,81 @@ public class RiskGame {
 					System.out.println("Too many or too few units chosen : "+units);
 				}
 			} else {
-				System.out.println("No territory was chosen thus no attack");
+				//System.out.println("No territory was chosen thus no attack");
 			}		
+
+			// Re-update our model
+			currentPlayer.updateModel();
 		}
-		System.out.println("End of the attack phase -----------------");
+		System.out.println("End of the ATTACK phase -------------");
 	}
-	
+
+	private void executePostAttackPhase(int initialNbTerritories)
+	{
+		// Current player has won at least one territory during last combat phase
+		if(initialNbTerritories < currentPlayer.occupiedTerritories.size() -1){
+			Card newcard = new Card();
+			if(Card.addCard(currentPlayer.cards, newcard)){
+				System.out.println(currentPlayer.name+" recieved a new Card");
+			}
+		}
+	}
+
+	private void executeGameOverCheck(){
+		try {
+			synchronized (currentPlayer) {
+				for(Player p : players){
+					if(p.occupiedTerritories.size() == 0){
+						Scanner scan = new Scanner(System.in);
+						String userInput = scan.nextLine();
+
+						players.remove(p);
+					}
+				}
+			}
+		} catch (Exception e) {
+			System.out.println("UNEXPECTED ERROR!!!");
+			System.out.println(e.toString());
+		}
+
+		if(players.size() == 1){
+			isOver = true;
+			Player winner = players.get(0);
+			System.out.println(winner.name + " WON THE GAME !!!");
+		}
+	}
+
 	private int calculateNbReinforcements(){
-		int num = 15;
-		
+		int num = 3;
+
 		num += Map.getContinentReinforcements(currentPlayer.occupiedTerritories);
-		
+
 		int nbControlledTerritories = currentPlayer.occupiedTerritories.size();
-		
+
 		// Add by number of controlled territories
-		if(nbControlledTerritories > 33){
+		if(nbControlledTerritories > 30){
 			num += 7;
-		} else if(nbControlledTerritories > 30 && nbControlledTerritories < 33){
-			num += 6;
 		} else if(nbControlledTerritories > 27 && nbControlledTerritories < 30){
-			num += 5;
+			num += 6;
 		} else if(nbControlledTerritories > 24 && nbControlledTerritories < 27){
-			num += 4;
+			num += 5;
 		} else if(nbControlledTerritories > 21 && nbControlledTerritories < 24){
-			num += 3;
+			num += 4;
 		} else if(nbControlledTerritories > 18 && nbControlledTerritories < 21){
-			num += 2;
+			num += 3;
 		} else if(nbControlledTerritories > 15 && nbControlledTerritories < 18){
+			num += 2;
+		} else if(nbControlledTerritories > 12 && nbControlledTerritories < 15){
 			num += 1;
 		}
 		
+		int totalUnits = currentPlayer.countUnits();
+		if(totalUnits + num >= 100){
+			num = 100 - currentPlayer.countUnits();
+		}
+
 		return num;
-		
+
 	}
 
 }

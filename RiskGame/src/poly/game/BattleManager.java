@@ -73,9 +73,11 @@ public class BattleManager {
 		unitsLost[0] = attackerLostUnits; // Attacker units lost
 		unitsLost[1] = defenderLostUnits; // Defender units lost
 
+		// remove units from territories
 		attacker.removeUnits(attackerLostUnits);
 		defender.removeUnits(defenderLostUnits);
 		
+		// Check if the defending player lost his territory
 		if(defender.getUnits() == 0){
 			defender.conquerTerritory(attacker.getOwner(), defender);
 		} else if (defender.getUnits() < 0){

@@ -100,12 +100,12 @@ public class Map {
 		quebec.adjacentTerritories 			= new ArrayList<Territory>(Arrays.asList( ontario, greenland, eastern_us ));
 		ontario.adjacentTerritories 		= new ArrayList<Territory>(Arrays.asList( quebec, greenland, eastern_us, western_us, nw_territory, alberta ));
 		alberta.adjacentTerritories 		= new ArrayList<Territory>(Arrays.asList( ontario, western_us, nw_territory, alaska ));
-		greenland.adjacentTerritories 		= new ArrayList<Territory>(Arrays.asList( quebec, ontario, nw_territory, iceland ));
-		eastern_us.adjacentTerritories 		= new ArrayList<Territory>(Arrays.asList( quebec, ontario, western_us, cent_america ));
+		greenland.adjacentTerritories 		= new ArrayList<Territory>(Arrays.asList( iceland, quebec, ontario, nw_territory  ));
+		eastern_us.adjacentTerritories 		= new ArrayList<Territory>(Arrays.asList( cent_america, quebec, ontario, western_us  ));
 		western_us.adjacentTerritories 		= new ArrayList<Territory>(Arrays.asList( eastern_us, cent_america, alberta, ontario ));
 		nw_territory.adjacentTerritories 	= new ArrayList<Territory>(Arrays.asList( alberta, ontario, greenland, alaska ));
 		alaska.adjacentTerritories 			= new ArrayList<Territory>(Arrays.asList( alberta, nw_territory ));
-		cent_america.adjacentTerritories 	= new ArrayList<Territory>(Arrays.asList( eastern_us, western_us, venezuela ));
+		cent_america.adjacentTerritories 	= new ArrayList<Territory>(Arrays.asList( venezuela, eastern_us, western_us  ));
 
 		// South America - Adjacent
 		venezuela.adjacentTerritories 		= new ArrayList<Territory>(Arrays.asList( brazil, peru, cent_america ));
