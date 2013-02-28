@@ -1,5 +1,6 @@
 package poly.game;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.Scanner;
@@ -20,7 +21,7 @@ public class RiskGame {
 	public int currentPlayerIndex;
 
 	protected boolean isOver = false;
-	
+
 	protected static int STARTING_UNITS = 30;
 
 	// Entry point
@@ -171,10 +172,10 @@ public class RiskGame {
 	private void executeTurn(){
 
 		int currentNbTerritories = currentPlayer.occupiedTerritories.size() - 1;
-		
+
 		// Acquire and Place new reinforcements
 		executeReinforcementsPhase();
-		
+
 		// Attack other territories
 		executeAttackPhase();
 
@@ -191,10 +192,11 @@ public class RiskGame {
 		System.out.println("-------- Reinforcement --------");
 		System.out.println(currentPlayer.name + " Recieved : "+newReinforcements + " new units");
 
+		currentPlayer.printTerritories();
+
 		while(currentPlayer.remainingUnits > 0){
 			currentPlayer.assignReinforcements();
 		}
-		currentPlayer.printTerritories();
 
 	}
 
@@ -259,9 +261,9 @@ public class RiskGame {
 				for(Player p : players){
 					if(p.occupiedTerritories.size() == 0){
 						Scanner scan = new Scanner(System.in);
-						String userInput = scan.nextLine();
-
+						System.out.println("Player : " + p.name + " was Eliminated!!!");
 						players.remove(p);
+						String userInput = scan.nextLine();
 					}
 				}
 			}
@@ -300,9 +302,10 @@ public class RiskGame {
 		} else if(nbControlledTerritories > 12 && nbControlledTerritories < 15){
 			num += 1;
 		}
-		
+
 		int totalUnits = currentPlayer.countUnits();
 		if(totalUnits + num >= 100){
+			System.out.println("Max Unit count reached");
 			num = 100 - currentPlayer.countUnits();
 		}
 

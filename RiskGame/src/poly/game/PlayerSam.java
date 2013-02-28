@@ -64,10 +64,11 @@ public class PlayerSam extends Player {
 	 * 
 	 *  COMBAT PHASE METHODS
 	 *  
-	 *  To perfom an attack, a player must : 
+	 *  To perform an attack, a player must : 
 	 *  1. Set [this.willAttack] to true
-	 *  1. Choose an attacking and target territories [this.attacker] & [this.target]
-	 *  2. Choose how many units to send, picked from this.attacker and set to [this.attackingUnits]
+	 *  2. Choose an attacking and target territories [this.attacker] & [this.target]
+	 *  3. Choose how many units to send, picked from this.attacker and set to [this.attackingUnits]
+	 *  * If any of the above aren't filled, the attack will abort.
 	 *  * All (I hope so) values will be checked for integrity ( != null or 0 )
 	 * 
 	 ******************************************************/
@@ -76,7 +77,14 @@ public class PlayerSam extends Player {
 	public void updateModel() {
 		super.updateModel();
 		
-		if(ran.nextInt(25) > 1){
+		Map.checkIfContinentOwned(Map.AFRICA, this.occupiedTerritories);
+		Map.checkIfContinentOwned(Map.NORTH_AMERICA, this.occupiedTerritories);
+		Map.checkIfContinentOwned(Map.EUROPE, this.occupiedTerritories);
+		Map.checkIfContinentOwned(Map.ASIA, this.occupiedTerritories);
+		Map.checkIfContinentOwned(Map.AUSTRALIA, this.occupiedTerritories);
+		Map.checkIfContinentOwned(Map.SOUTH_AMERICA, this.occupiedTerritories);
+		
+		if(ran.nextInt(100) > 1){
 			this.willAttack = true;
 		} else {
 			this.willAttack = false;
@@ -87,7 +95,7 @@ public class PlayerSam extends Player {
 	public void chooseAttackerAndTarget() {
 		int numberTerritoriesChecked = 0;
 		
-		while(numberTerritoriesChecked < occupiedTerritories.size() - 1){
+		while(numberTerritoriesChecked < occupiedTerritories.size()){
 
 			// try a random territory in what we occupy
 			int rt = ran.nextInt(occupiedTerritories.size());
