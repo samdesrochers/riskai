@@ -66,10 +66,31 @@ public abstract class Player {
 	// TO IMPLEMENT
 	public abstract String pickReinforceTerritory();
 	
+	
 	// Assign part of remaining reinforcements (Normal round)
 	// TO IMPLEMENT
 	public abstract void assignReinforcements();
 	
+	//Functions doesn't validate if your moving your own soldiers
+	//Return true if valid move, false if invalid
+	public boolean moveSoldiers(Territory sourceTerritory,
+			Territory destinationTerritory, int numbersToMove) {
+		//Validation that its a legal move to an adjacent territory that is owned by the same owner
+		boolean isAdjacent = false;
+		for(Territory adjTerritory : sourceTerritory.adjacentTerritories){
+			if(adjTerritory.name == destinationTerritory.name && adjTerritory.getOwner().name == destinationTerritory.getOwner().name){
+				isAdjacent = true;
+			}
+		}
+		//Verify that number of units to move is less than number available 
+		if(!isAdjacent || !(sourceTerritory.getUnits() > numbersToMove)){
+			return false;
+		}
+		sourceTerritory.removeUnits(numbersToMove);
+		destinationTerritory.addUnits(numbersToMove);
+		return true;
+	}
+
 	// Return true if the player will attack; decided by the AI (DO NOT RE-IMPLEMENT)
 	public boolean prepareCombat() {		
 		// Assign the territories
