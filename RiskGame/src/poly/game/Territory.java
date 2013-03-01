@@ -1,7 +1,6 @@
 package poly.game;
 
 import java.awt.Point;
-import java.awt.geom.Point2D;
 import java.util.ArrayList;
 
 public class Territory {

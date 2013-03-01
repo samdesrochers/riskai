@@ -219,9 +219,9 @@ public class Map {
 		nw_territory.position = new Point(200, 150);
 		alaska.position = new Point(80, 150);
 		alberta.position = new Point(190, 220);
-		western_us.position = new Point(150, 350);
-		eastern_us.position = new Point(250, 350);
-		cent_america.position = new Point(200, 410);
+		western_us.position = new Point(190, 280);
+		eastern_us.position = new Point(290, 300);
+		cent_america.position = new Point(230, 360);
 
 
 		map = new ArrayList<Territory>(Arrays.asList( quebec, ontario, eastern_us, western_us, alaska, alberta, 

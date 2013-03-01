@@ -93,16 +93,16 @@ public class RiskGame extends Canvas{
 		players = new ArrayList<Player>();
 		currentPlayerIndex = -1;
 
-		Player sam 	= new PlayerSam("Sam");
+		Player sam 	= new RandomAI("Sam");
 		sam.color = Color.white;
 		
-		Player sam2 = new PlayerSam("Emile");
+		Player sam2 = new RandomAI("Emile");
 		sam2.color = Color.blue;
 		
-		Player sam3 = new PlayerSam("Pong");
+		Player sam3 = new RandomAI("Pong");
 		sam3.color = Color.green;
 		
-		Player sam4 = new PlayerSam("Maxim");
+		Player sam4 = new RandomAI("Maxim");
 		sam4.color = Color.red;
 
 		players.add(sam);
@@ -398,31 +398,14 @@ public class RiskGame extends Canvas{
         distributionButton.setSize(new Dimension(100, 30));
         distributionButton.setLocation(0, 0);
         
-        roundButton = new JButton("Play Round");
-        roundButton.setVisible(true);
-        roundButton.setSize(new Dimension(120, 30));
-        roundButton.setLocation(105, 0);
-        roundButton.setEnabled(false);
-        
         distributionButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				isDistributionReady = true;
 				distributionButton.setEnabled(false);
-				roundButton.setEnabled(true);
 			}
         });
-        
-        roundButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				isDistributionReady = true;
-			}
-        });
-        frame.add(roundButton);
         frame.add(distributionButton);
-        
-        
         frame.add(new MyPanel());
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(1200, 780);
@@ -457,16 +440,14 @@ public class RiskGame extends Canvas{
 				}
             } catch (Exception e) {}
             
-//            // Draw Combat names
+            // Draw Combat names
             if(attacker != null && defender != null){
     			g.setColor(Color.WHITE);
     			String combatString = attacker.getOwner().name + " is attacking " + defender.getOwner().name +
     							" from " + attacker.name + " to " + defender.name;
     			g2d.drawString(combatString, 550, 30);
             }
-
-            
-            
+ 
             // Draw Player names
             int offset = 0;
             for(Player p : players){
