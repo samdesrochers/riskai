@@ -205,6 +205,7 @@ public class RiskGame extends Canvas{
 		while(!isOver){
 			// Execute the turn for currentPlayer
 			executeTurn();
+			executeGameOverCheck();
 
 			// Next player
 			currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
@@ -228,8 +229,9 @@ public class RiskGame extends Canvas{
 
 		// Hand out a card if necessary
 		executePostAttackPhase(currentNbTerritories);
-
-		executeGameOverCheck();
+		
+		// Move units from a territory to another
+		executeMovementPhase();
 
 	}
 
@@ -303,6 +305,22 @@ public class RiskGame extends Canvas{
 			Card newcard = new Card();
 			if(Card.addCard(currentPlayer.cards, newcard)){
 				System.out.println(currentPlayer.name+" recieved a new Card");
+			}
+		}
+	}
+	
+	private void executeMovementPhase(){
+		currentPlayer.chooseMovementTerritoriesAndUnits();
+		
+		Territory from = currentPlayer.getOriginMovementTerritory();
+		Territory to = currentPlayer.getDestinationMovementTerritory();
+		int units = currentPlayer.getMovementUnits();
+		
+		if(from != null && to != null && units > 0){
+			if(currentPlayer.moveSoldiers(from, to, units)){
+				System.out.println("Player made a units move");
+			} else {
+				System.out.println("No movement was made");
 			}
 		}
 	}
@@ -450,11 +468,16 @@ public class RiskGame extends Canvas{
  
             // Draw Player names
             int offset = 0;
-            for(Player p : players){
-    			g.setColor(p.color);
-    			g2d.drawString(p.name, 30, 650 + offset);
-    			offset += 20;
-            }
+            try {
+	            for(Player p : players){
+	            	synchronized (p) {
+	        			g.setColor(p.color);
+	        			g2d.drawString(p.name, 30, 650 + offset);
+	        			offset += 20;
+					}
+	
+	            }
+			} catch (Exception e) {}
         }
     }
 }

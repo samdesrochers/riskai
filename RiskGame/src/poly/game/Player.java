@@ -29,8 +29,17 @@ public abstract class Player {
 	// Territory we are attacking
 	protected Territory target;
 	
+	// Territory from which we are moving
+	protected Territory moveOrigin;
+	
+	// Territory we are moving to 
+	protected Territory moveDestination;
+	
 	// Number of units we want to attack with (MAX 3 per round)
 	protected int attackingUnits;
+	
+	// Number of units we want to move
+	protected int moveUnits;
 	
 	// Number of territories owned
 	public int numberOfTerritories;
@@ -73,8 +82,7 @@ public abstract class Player {
 	
 	//Functions doesn't validate if your moving your own soldiers
 	//Return true if valid move, false if invalid
-	public boolean moveSoldiers(Territory sourceTerritory,
-			Territory destinationTerritory, int numbersToMove) {
+	public boolean moveSoldiers(Territory sourceTerritory, Territory destinationTerritory, int numbersToMove) {
 		//Validation that its a legal move to an adjacent territory that is owned by the same owner
 		boolean isAdjacent = false;
 		for(Territory adjTerritory : sourceTerritory.adjacentTerritories){
@@ -86,6 +94,10 @@ public abstract class Player {
 		if(!isAdjacent || !(sourceTerritory.getUnits() > numbersToMove)){
 			return false;
 		}
+		
+		System.out.println(sourceTerritory.getOwner().name + " moved " + numbersToMove + 
+				" units from "+ sourceTerritory.name + " to " + destinationTerritory.name);
+		
 		sourceTerritory.removeUnits(numbersToMove);
 		destinationTerritory.addUnits(numbersToMove);
 		return true;
@@ -163,6 +175,21 @@ public abstract class Player {
 
 	// Signifies the player when he won a new territory
 	public abstract void didGainNewTerritory(Territory t);
+	
+	public abstract void chooseMovementTerritoriesAndUnits();
+	
+	// Getters and setters for the automatic combat process 
+	public Territory getOriginMovementTerritory() {
+		return this.moveOrigin;
+	}
+
+	public Territory getDestinationMovementTerritory() {
+		return this.moveDestination;
+	}
+
+	public int getMovementUnits() {
+		return this.moveUnits;
+	}
 	
 	public boolean isAlive(){
 		if(occupiedTerritories.size() == 0){

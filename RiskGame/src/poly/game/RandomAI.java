@@ -42,7 +42,11 @@ public class RandomAI extends Player {
 
 	/*******************************************************
 	 * 
-	 *  REINFORCEMENT PHASE METHODS
+	 *  REINFORCEMENT PHASE METHODS (Pre - Combat)
+	 *  Assign 3 cards to be turned in for bonus units if you wish
+	 *  After recieveing your units at the beginning of a turn,
+	 *  place all of them as you wish by selecting one of
+	 *  your territories and adding the new units (addUnits)
 	 * 
 	 ******************************************************/
 	
@@ -90,6 +94,7 @@ public class RandomAI extends Player {
 		Territory pick = occupiedTerritories.get(rt);
 		pick.addUnits(ru);
 
+		// Remove the units that were placed from your units pool
 		this.remainingUnits -= ru;
 	}
 
@@ -106,7 +111,8 @@ public class RandomAI extends Player {
 	 * 
 	 ******************************************************/
 	
-	// Only called before preparing a combat round
+	// Only called before preparing a combat round and after the attack, 
+	// to decide if we want to attack again
 	public void updateModel() {
 		super.updateModel();
 		
@@ -172,5 +178,14 @@ public class RandomAI extends Player {
 		// (MUST leave at least one on the territory we attacked with)
 		conqueredTerritory.setUnits(this.attacker.getUnits() -1);
 		this.attacker.setUnits(1);
+	}
+	
+	// Set [this.moveOrigin] , [this.moveDestination] , [this.moveUnits]
+	// if you want to move units from one territory to another (only once per turn)
+	@Override
+	public void chooseMovementTerritoriesAndUnits() {
+		this.moveOrigin = this.occupiedTerritories.get(ran.nextInt(occupiedTerritories.size()));
+		this.moveDestination = this.moveOrigin.adjacentTerritories.get(ran.nextInt(moveOrigin.adjacentTerritories.size()));
+		this.moveUnits = this.moveDestination.getUnits() - 1;
 	}
 }
