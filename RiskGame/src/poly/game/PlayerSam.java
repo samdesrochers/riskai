@@ -1,5 +1,7 @@
 package poly.game;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Random;
 
 public class PlayerSam extends Player {
@@ -45,7 +47,39 @@ public class PlayerSam extends Player {
 	 * 
 	 ******************************************************/
 	
-	// REINFORCEMENT Phase, assign between 1 and 3 reinforcements
+	// REINFORCEMENT. Trade 3 cards to get bonus units
+	// Must be all of the same type, or one of each (3) types
+	// Return null if you don't want to trade cards
+	public ArrayList<Card> tradeCards(){
+		
+		if(this.cards.size() >= 3){
+			ArrayList<Card> inf_cards = new ArrayList<Card>();
+			ArrayList<Card> cav_cards = new ArrayList<Card>();
+			ArrayList<Card> art_cards = new ArrayList<Card>();
+			
+			for(int i = 0; i < this.cards.size(); i++){
+				Card card = this.cards.get(i);
+				if(card.type == Card.TYPE_INFANTRY){
+					inf_cards.add(card);
+				} else if(card.type == Card.TYPE_CAVALRY){
+					cav_cards.add(card);
+				} else if(card.type == Card.TYPE_ARTILERY){
+					art_cards.add(card);
+				} 
+			}
+			if(inf_cards.size() == 3){
+				return inf_cards;
+			} else if(cav_cards.size() == 3){
+				return cav_cards;
+			} else if(art_cards.size() == 3){
+				return art_cards;
+			} 
+		}
+		return null;
+	}
+	
+	// REINFORCEMENT Phase, assign reinforcements as we want
+	// Make sure [this.remainingUnits] reaches 0 here
 	public void assignReinforcements() {
 		//random territory
 		int rt = ran.nextInt(occupiedTerritories.size());

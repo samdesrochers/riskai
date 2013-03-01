@@ -1,4 +1,5 @@
 package poly.game;
+import java.awt.Color;
 import java.util.ArrayList;
 
 public abstract class Player {
@@ -7,6 +8,8 @@ public abstract class Player {
 	 */
 	
 	public String name;
+	
+	public Color color;
 	
 	// List of all the occupied territories of this Player
 	public ArrayList<Territory> occupiedTerritories;
@@ -63,7 +66,7 @@ public abstract class Player {
 	// TO IMPLEMENT
 	public abstract String pickReinforceTerritory();
 	
-	// Assign part of remaining reinforcements 
+	// Assign part of remaining reinforcements (Normal round)
 	// TO IMPLEMENT
 	public abstract void assignReinforcements();
 	
@@ -124,7 +127,7 @@ public abstract class Player {
 			// Note : this could be any number as long as there is at least one remaining
 			// unit on the attacking territory.
 			this.didGainNewTerritory(this.target);
-			System.out.println("New units originating from :" +this.attacker.name +" which has " + this.attacker.getUnits());
+			System.out.println("New units moving from :" +this.attacker.name +" which has " + this.attacker.getUnits());
 			System.out.println("New territory :"+target.name +" now has " + target.getUnits() + " units" );
 		}
 		numberOfTerritories = currentTerritoriesCount;
@@ -146,6 +149,8 @@ public abstract class Player {
 		}
 		return true;
 	}
+	
+	public abstract ArrayList<Card> tradeCards();
 	
 	// Gets the total number of units of our player
 	protected int countUnits(){

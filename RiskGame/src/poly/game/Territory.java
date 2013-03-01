@@ -1,5 +1,7 @@
 package poly.game;
 
+import java.awt.Point;
+import java.awt.geom.Point2D;
 import java.util.ArrayList;
 
 public class Territory {
@@ -9,6 +11,7 @@ public class Territory {
 	private int units;
 	public ArrayList<Territory> adjacentTerritories;
 	public String continent = "None";
+	public Point position;
 	
 	public int value = 0;	// Heuristic value of some sort
 	public boolean isOccupied = false;
@@ -20,7 +23,7 @@ public class Territory {
 		this.name = nm;
 		this.setUnits(0);	
 		this.isOccupied = false;
-
+		position = new Point(0,0);
 	}
 	
 	public void printAdjacent(){

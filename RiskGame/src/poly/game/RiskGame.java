@@ -1,12 +1,29 @@
 package poly.game;
 
-import java.io.IOException;
+import java.awt.Canvas;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.Scanner;
 
-public class RiskGame {
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
 
+public class RiskGame extends Canvas{
+
+	/**
+	 * Risk game global class
+	 */
+	private static final long serialVersionUID = 1L;
 	public static final int PHASE_INITIAL 		= 0;
 	public static final int PHASE_TURN_BEGINS 	= 1;
 	public static final int PHASE_REINFORCE		= 2;
@@ -16,13 +33,29 @@ public class RiskGame {
 
 	public ArrayList<Player> 				players;
 	public ArrayList<Territory> 		territories;
+	
+	public Territory					attacker;
+	public Territory					defender;
 
 	public Player currentPlayer;
 	public int currentPlayerIndex;
-
+	
+	public static int BONUS_UNITS_COUNTER 	= 5;
+	protected static int STARTING_UNITS 	= 30;
 	protected boolean isOver = false;
+	
+	public static JFrame frame;
+	public JButton distributionButton;
+	public JButton roundButton;
 
-	protected static int STARTING_UNITS = 30;
+    public Image riskMap;
+    public Font font;
+    
+    public boolean isDistributionReady = false;
+ 
+	public RiskGame(){
+		this.setupUI();
+	}
 
 	// Entry point
 	public void startGame(){
@@ -30,8 +63,18 @@ public class RiskGame {
 		// Initial phase
 		initPlayers();
 		initTerritories();
+		
+		while(!isDistributionReady){
+			try {
+				Thread.sleep(60);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 		ditributeTerritories();
 		placeRemainingUnits();
+		frame.repaint();
 
 		// Game phase
 		playGame();
@@ -51,15 +94,21 @@ public class RiskGame {
 		currentPlayerIndex = -1;
 
 		Player sam 	= new PlayerSam("Sam");
+		sam.color = Color.white;
+		
 		Player sam2 = new PlayerSam("Emile");
+		sam2.color = Color.blue;
+		
 		Player sam3 = new PlayerSam("Pong");
+		sam3.color = Color.green;
+		
 		Player sam4 = new PlayerSam("Maxim");
+		sam4.color = Color.red;
 
 		players.add(sam);
 		players.add(sam2);
 		players.add(sam3);
 		players.add(sam4);
-
 
 	}
 
@@ -124,7 +173,6 @@ public class RiskGame {
 						} else {
 							remainingUnitsThisRound = currentPlayer.remainingUnits;
 						}
-
 					}
 				} else{
 					System.out.println("An error occured");
@@ -150,21 +198,20 @@ public class RiskGame {
 	}
 
 	private void playGame(){
-		Scanner scan = new Scanner(System.in);
-
 		// Random first turn pick
 		currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
 		currentPlayer = players.get(currentPlayerIndex);
 
 		while(!isOver){
-			//String userInput = scan.nextLine();
-
 			// Execute the turn for currentPlayer
 			executeTurn();
 
 			// Next player
 			currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
 			currentPlayer = players.get(currentPlayerIndex);
+			
+			// draw frame
+			frame.repaint();
 		}
 		System.out.println("Game Over!");
 	}
@@ -188,6 +235,7 @@ public class RiskGame {
 
 	private void executeReinforcementsPhase(){
 		int newReinforcements = calculateNbReinforcements();
+				
 		currentPlayer.remainingUnits = newReinforcements;
 		System.out.println("-------- Reinforcement --------");
 		System.out.println(currentPlayer.name + " Recieved : "+newReinforcements + " new units");
@@ -197,10 +245,10 @@ public class RiskGame {
 		while(currentPlayer.remainingUnits > 0){
 			currentPlayer.assignReinforcements();
 		}
-
 	}
 
 	private void executeAttackPhase(){
+		Scanner scan = new Scanner(System.in);
 
 		// Analyze board situation when about to enter combat (AI) 
 		currentPlayer.updateModel();
@@ -209,13 +257,12 @@ public class RiskGame {
 		while(currentPlayer.willAttack){
 
 			currentPlayer.prepareCombat();
-			Territory attacker;
 
 			// Try to get an attacking territory
-			if((attacker = currentPlayer.getAttackingTerritory()) != null){
+			if((this.attacker = currentPlayer.getAttackingTerritory()) != null){
 
 				// Get the defending territory
-				Territory defender = currentPlayer.getTargetTerritory();
+				this.defender = currentPlayer.getTargetTerritory();
 
 				// Get the amount of units used for this fight (MAXIMUM 3, MINIMUM 1)
 				int units = currentPlayer.getNbOfAttackingUnits();
@@ -223,6 +270,8 @@ public class RiskGame {
 				// Check if number of units is legal
 				if(units <= 3 && units >= 1){
 					if(attacker.name != defender.name){
+						//String userInput = scan.nextLine();
+
 						int[] unitsLost;
 						unitsLost = BattleManager.executeAttackPhase(attacker, defender, units);
 
@@ -240,6 +289,9 @@ public class RiskGame {
 
 			// Re-update our model
 			currentPlayer.updateModel();
+			
+			// draw frame
+			frame.repaint();
 		}
 		System.out.println("End of the ATTACK phase -------------");
 	}
@@ -302,15 +354,126 @@ public class RiskGame {
 		} else if(nbControlledTerritories > 12 && nbControlledTerritories < 15){
 			num += 1;
 		}
+		
+		num +=  getCardUnits();
 
 		int totalUnits = currentPlayer.countUnits();
 		if(totalUnits + num >= 100){
 			System.out.println("Max Unit count reached");
 			num = 100 - currentPlayer.countUnits();
 		}
-
 		return num;
-
 	}
+	
+	private int getCardUnits(){
+		ArrayList<Card> cards = currentPlayer.tradeCards();
+		if(cards != null){
+			if(cards.size() == 3){
+				int bonus = Card.tradeCards(currentPlayer, cards.get(0), cards.get(1), cards.get(2));
+				if(bonus != 0){
+					bonus += BONUS_UNITS_COUNTER;
+					if(BONUS_UNITS_COUNTER < 40){
+						BONUS_UNITS_COUNTER += 5;
+					}
+					return bonus;
+				} else {
+					System.out.println("Bad cards function");
+				}
+			}
+			else {
+				System.out.println("Bad cards count");
+			}
+		}
+		
+		return 0;
+	}
+	
+	public void setupUI(){
+        frame = new JFrame("Risk");
+        riskMap = new ImageIcon(this.getClass().getResource("riskmap.png")).getImage();
+        font = new Font ("Verdana", Font.BOLD , 18);
+        
+        distributionButton = new JButton("Distribute");
+        distributionButton.setVisible(true);
+        distributionButton.setSize(new Dimension(100, 30));
+        distributionButton.setLocation(0, 0);
+        
+        roundButton = new JButton("Play Round");
+        roundButton.setVisible(true);
+        roundButton.setSize(new Dimension(120, 30));
+        roundButton.setLocation(105, 0);
+        roundButton.setEnabled(false);
+        
+        distributionButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				isDistributionReady = true;
+				distributionButton.setEnabled(false);
+				roundButton.setEnabled(true);
+			}
+        });
+        
+        roundButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				isDistributionReady = true;
+			}
+        });
+        frame.add(roundButton);
+        frame.add(distributionButton);
+        
+        
+        frame.add(new MyPanel());
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(1200, 780);
+        frame.setLocationRelativeTo(null);
+        frame.setVisible(true);
+	}
+	
+	public class MyPanel extends JPanel {
+        /**
+		 * Simple panel to display primitive graphics
+		 */
+		private static final long serialVersionUID = 1L;
 
+		public void paint(Graphics g) {
+            Graphics2D g2d = (Graphics2D) g;
+            g2d.drawImage(riskMap, 0, 0, null);
+            g.setFont(font);
+            
+            // Draw all player units (with their respective color)
+            try {
+            	synchronized (g2d) {
+	            	for(Player p : players){
+	                	synchronized (p) {
+	                    	for(Territory t : p.occupiedTerritories){
+	                    		synchronized (t) {
+	                    			g.setColor(p.color);
+	                    			g2d.drawString(Integer.toString(t.getUnits()), t.position.x, t.position.y);
+								}
+	                    	}
+	    				}
+	                }
+				}
+            } catch (Exception e) {}
+            
+//            // Draw Combat names
+            if(attacker != null && defender != null){
+    			g.setColor(Color.WHITE);
+    			String combatString = attacker.getOwner().name + " is attacking " + defender.getOwner().name +
+    							" from " + attacker.name + " to " + defender.name;
+    			g2d.drawString(combatString, 550, 30);
+            }
+
+            
+            
+            // Draw Player names
+            int offset = 0;
+            for(Player p : players){
+    			g.setColor(p.color);
+    			g2d.drawString(p.name, 30, 650 + offset);
+    			offset += 20;
+            }
+        }
+    }
 }

@@ -1,5 +1,6 @@
 package poly.game;
 
+import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -31,7 +32,7 @@ public class Map {
 	public static final String PERU 				= "peru";
 	public static final String ARGENTINA 			= "argentina";
 
-	// Countries by continent - AFRICA
+	// Countries by continent - Africa
 	public static final String NORTH_AFRICA 		= "north_africa";
 	public static final String EGYPT 				= "egypt";
 	public static final String EAST_AFRICA 			= "east_africa";
@@ -39,7 +40,7 @@ public class Map {
 	public static final String SOUTH_AFRICA 		= "south_africa";
 	public static final String MADAGASCAR 			= "madagascar";
 
-	// Countries by continent - EUROPE
+	// Countries by continent - Europe
 	public static final String ICELAND 				= "iceland";
 	public static final String GREAT_BRITAIN 		= "great_britain";
 	public static final String W_EUROPE 			= "w_europe";
@@ -47,8 +48,8 @@ public class Map {
 	public static final String SCANDINAVIA 			= "scandinavia";
 	public static final String UKRAINE 				= "ukraine";
 	public static final String S_EUROPE 			= "s_europe";
-	
-	// Countries by continent - ASIA
+
+	// Countries by continent - Asia
 	public static final String URAL 				= "ural";
 	public static final String AFGHANISTAN 			= "afghanistan";
 	public static final String MIDDLE_EAST 			= "middle_east";
@@ -61,8 +62,8 @@ public class Map {
 	public static final String YAKUTSK 				= "yakutsk";
 	public static final String IRKUTSK 				= "irkutsk";
 	public static final String KAMATCHKA 			= "kamatchka";
-	
-	// Countries by continent - AUSTRALIA
+
+	// Countries by continent - Australia
 	public static final String INDONESIA 			= "indonesia";
 	public static final String NEW_GUINEA 			= "new_guinea";
 	public static final String W_AUSTRALIA 			= "w_australia";
@@ -114,7 +115,7 @@ public class Map {
 		Territory s_europe			= new Territory(EUROPE, S_EUROPE);
 		Territory ukraine			= new Territory(EUROPE, UKRAINE);
 		Territory scandinavia		= new Territory(EUROPE, SCANDINAVIA);
-		
+
 		// Asia
 		Territory ural 				= new Territory(ASIA, URAL);
 		Territory afghanistan 		= new Territory(ASIA, AFGHANISTAN);
@@ -134,7 +135,7 @@ public class Map {
 		Territory new_guinea 		= new Territory(AUSTRALIA, NEW_GUINEA);
 		Territory w_australia 		= new Territory(AUSTRALIA, W_AUSTRALIA);
 		Territory e_australia		= new Territory(AUSTRALIA, E_AUSTRALIA);
-		
+
 		// North America - Adjacent
 		quebec.adjacentTerritories 			= new ArrayList<Territory>(Arrays.asList( ontario, greenland, eastern_us ));
 		ontario.adjacentTerritories 		= new ArrayList<Territory>(Arrays.asList( quebec, greenland, eastern_us, western_us, nw_territory, alberta ));
@@ -168,13 +169,13 @@ public class Map {
 		w_europe.adjacentTerritories 		= new ArrayList<Territory>(Arrays.asList( north_africa, great_britain, n_europe, s_europe ));
 		scandinavia.adjacentTerritories 	= new ArrayList<Territory>(Arrays.asList( iceland, great_britain, n_europe, ukraine ));
 		ukraine.adjacentTerritories 		= new ArrayList<Territory>(Arrays.asList( scandinavia, n_europe, s_europe, ural, afghanistan, middle_east ));
-		
+
 		// Asia - Adjacent
 		ural.adjacentTerritories 			= new ArrayList<Territory>(Arrays.asList( ukraine, siberia, afghanistan, china ));
 		afghanistan.adjacentTerritories 	= new ArrayList<Territory>(Arrays.asList( ukraine, ural, afghanistan, china, middle_east, india  ));
 		middle_east.adjacentTerritories 	= new ArrayList<Territory>(Arrays.asList( ukraine, india, s_europe, egypt, east_africa, afghanistan ));
 		india.adjacentTerritories 			= new ArrayList<Territory>(Arrays.asList( middle_east, afghanistan, china, siam  ));
-		siam.adjacentTerritories 			= new ArrayList<Territory>(Arrays.asList( india, china ));
+		siam.adjacentTerritories 			= new ArrayList<Territory>(Arrays.asList( india, china, indonesia ));
 		china.adjacentTerritories 			= new ArrayList<Territory>(Arrays.asList( india, siam, mongolia, afghanistan, ural, siberia ));
 		japan.adjacentTerritories 			= new ArrayList<Territory>(Arrays.asList( mongolia, kamatchka ));
 		mongolia.adjacentTerritories 		= new ArrayList<Territory>(Arrays.asList( japan, irkutsk, siberia, china, kamatchka ));
@@ -182,7 +183,7 @@ public class Map {
 		yakutsk.adjacentTerritories 		= new ArrayList<Territory>(Arrays.asList( irkutsk, siberia, kamatchka ));
 		siberia.adjacentTerritories 		= new ArrayList<Territory>(Arrays.asList( ural, yakutsk, irkutsk, mongolia, china ));
 		kamatchka.adjacentTerritories 		= new ArrayList<Territory>(Arrays.asList( alaska, japan, yakutsk, irkutsk ));
-		
+
 		// Asia - Adjacent
 		indonesia.adjacentTerritories 		= new ArrayList<Territory>(Arrays.asList( siam, new_guinea, w_australia));
 		new_guinea.adjacentTerritories 		= new ArrayList<Territory>(Arrays.asList( indonesia, e_australia  ));
@@ -196,7 +197,7 @@ public class Map {
 		asia			= new Continent(ASIA);
 		europe			= new Continent(EUROPE);
 		australia		= new Continent(AUSTRALIA);
-		
+
 		northAmerica.territories 	= new ArrayList<Territory>(Arrays.asList( quebec, ontario, eastern_us, western_us, alaska, alberta, nw_territory, greenland, cent_america ));
 		southAmerica.territories 	= new ArrayList<Territory>(Arrays.asList( peru, brazil, venezuela, argentina ));
 		africa.territories 			= new ArrayList<Territory>(Arrays.asList( north_africa, egypt, south_africa, east_africa, congo, madagascar ));
@@ -210,6 +211,18 @@ public class Map {
 		continents.add(europe);
 		continents.add(asia);
 		continents.add(australia);
+		
+		// Positions - North America
+		quebec.position = new Point(350, 230);
+		ontario.position = new Point(270, 225);
+		greenland.position = new Point(450, 100);
+		nw_territory.position = new Point(200, 150);
+		alaska.position = new Point(80, 150);
+		alberta.position = new Point(190, 220);
+		western_us.position = new Point(150, 350);
+		eastern_us.position = new Point(250, 350);
+		cent_america.position = new Point(200, 410);
+
 
 		map = new ArrayList<Territory>(Arrays.asList( quebec, ontario, eastern_us, western_us, alaska, alberta, 
 				nw_territory, greenland, cent_america, peru, brazil, venezuela, argentina,
@@ -294,7 +307,7 @@ public class Map {
 						}
 					}
 				}
-				
+
 				if(nbTerrCont == c.territories.size() && (c.name == NORTH_AMERICA || c.name == EUROPE)){
 					bonusUnits += 5;
 				} else if(nbTerrCont == c.territories.size() && (c.name == AUSTRALIA || c.name == SOUTH_AMERICA)){
@@ -308,7 +321,7 @@ public class Map {
 		}
 		return bonusUnits;
 	}
-	
+
 	// Returns true if a player owns the continent provided in parameter (String continentName)
 	public static boolean checkIfContinentOwned(String continentName, ArrayList<Territory> playerTerritories){
 		Continent targetContinent = null;
