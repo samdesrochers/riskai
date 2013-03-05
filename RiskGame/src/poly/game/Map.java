@@ -221,8 +221,52 @@ public class Map {
 		alberta.position = new Point(190, 220);
 		western_us.position = new Point(190, 280);
 		eastern_us.position = new Point(290, 300);
-		cent_america.position = new Point(230, 360);
-
+		cent_america.position = new Point(207, 360);
+		
+		// Positions - South America
+		venezuela.position = new Point(252, 445);
+		brazil.position = new Point(352, 521);
+		peru.position = new Point(275, 551);
+		argentina.position = new Point(280, 654);
+		
+		// Positions - Africa
+		congo.position = new Point(577, 565);
+		east_africa.position = new Point(651, 500);
+		egypt.position = new Point(600, 418);
+		madagascar.position = new Point(680, 645);
+		north_africa.position = new Point(512,458);
+		south_africa.position = new Point(583, 671);
+		
+		// Positions - Europe
+		great_britain.position = new Point(510, 249);
+		iceland.position = new Point(501, 175);
+		n_europe.position = new Point(573, 259);
+		scandinavia.position = new Point(563, 168);
+		s_europe.position = new Point(600,313);
+		ukraine.position = new Point(673, 231);
+		w_europe.position = new Point(500, 333);
+		
+		// Positions - Asia
+		afghanistan.position = new Point(770, 294);
+		china.position = new Point(900, 344);
+		india.position = new Point(817, 422);
+		irkutsk.position = new Point(947, 229);
+		japan.position = new Point(1053,308);
+		kamatchka.position = new Point(1110, 149);
+		middle_east.position = new Point(676, 400);
+		mongolia.position = new Point(981, 277);
+		siam.position = new Point(910, 428);
+		siberia.position = new Point(880, 196);
+		ural.position = new Point(800, 207);
+		yakutsk.position = new Point(987,166);
+		
+		// Positions - Australia
+		e_australia.position = new Point(1037, 631);
+		indonesia.position = new Point(935, 512);
+		new_guinea.position = new Point(1064, 535);
+		w_australia.position = new Point(930, 635);
+		
+		
 
 		map = new ArrayList<Territory>(Arrays.asList( quebec, ontario, eastern_us, western_us, alaska, alberta, 
 				nw_territory, greenland, cent_america, peru, brazil, venezuela, argentina,

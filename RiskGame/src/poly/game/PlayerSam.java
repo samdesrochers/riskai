@@ -174,4 +174,10 @@ public class PlayerSam extends Player {
 		conqueredTerritory.setUnits(this.attacker.getUnits() -1);
 		this.attacker.setUnits(1);
 	}
+
+	@Override
+	public void chooseMovementTerritoriesAndUnits() {
+		// TODO Auto-generated method stub
+		
+	}
 }
