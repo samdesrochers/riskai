@@ -122,7 +122,7 @@ public class RiskGame extends Canvas{
 		int startingUnits = STARTING_UNITS;
 		for(Player p : players){
 			p.remainingUnits = startingUnits;
-			p.allTerritories = territories;
+			p.public_allTerritories = territories;
 		}
 
 		// Choosing round if any territories not yet assigned

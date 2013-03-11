@@ -19,7 +19,7 @@ public class RandomAI extends Player {
 	
 	// Picks the next non occupied territory (TO IMPLEMENT)
 	public String chooseTerritory() {
-		for(Territory t : allTerritories){
+		for(Territory t : public_allTerritories){
 			if(!t.isOccupied){
 				return t.name;
 			}

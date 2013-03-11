@@ -15,7 +15,10 @@ public abstract class Player {
 	public ArrayList<Territory> occupiedTerritories;
 	
 	// List of all the territories of every players
-	public ArrayList<Territory> allTerritories;
+	public ArrayList<Territory> public_allTerritories;
+	
+	// List of all the territories for private calculations 
+	protected ArrayList<Territory> private_allTerritories;
 	
 	// List of all the territories of every players
 	public ArrayList<Card> cards;
@@ -56,6 +59,8 @@ public abstract class Player {
 		this.attackingUnits = 0;
 		this.cards = new ArrayList<Card>();
 		this.occupiedTerritories = new ArrayList<Territory>();
+		Map map = new Map();
+		this.private_allTerritories = map.generate();
 	}
 	
 	// TO subsclass

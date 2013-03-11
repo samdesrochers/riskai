@@ -1,12 +1,16 @@
 package poly.game;
 
 import java.util.ArrayList;
+import java.util.Random;
 
 public class SamAI extends Player{
 
+	private Random ran;
+	
 	public SamAI(String name) {
 		super(name);
 		// TODO Auto-generated constructor stub
+		ran = new Random();
 	}
 
 	/*******************************************************
@@ -15,32 +19,40 @@ public class SamAI extends Player{
 	 * 
 	 ******************************************************/
 	@Override
+	// Choose the territory you want for this turn of territories selection
+	// Simply return an empty territory from the map.  Actual territories 
+	// and their status can be found in [this.public_allTerritories].
 	public String chooseTerritory() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
+	// Choose a number of units to place on a territory during
+	// the initial deployment phase. Must use between 1 and 3 units
 	@Override
 	public int chooseNbOfUnits(int remainingThisTurn) {
 		// TODO Auto-generated method stub
 		return 0;
 	}
-
-	/*******************************************************
-	 * 
-	 *  REINFORCEMENT PHASE METHODS (Pre - Combat)
-	 *  Assign 3 cards to be turned in for bonus units if you wish
-	 *  After recieveing your units at the beginning of a turn,
-	 *  place all of them as you wish by selecting one of
-	 *  your territories and adding the new units (addUnits)
-	 * 
-	 ******************************************************/
+	
+	// Choose a territory to reinforce with 1 to 3 units
+	// Returns the territory to reinforce
 	@Override
 	public String pickReinforceTerritory() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
+	/*******************************************************
+	 * 
+	 *  REINFORCEMENT PHASE METHODS (Pre - Combat)
+	 *  Assign 3 cards to be turned in for bonus units if you wish
+	 *  After receiving your units at the beginning of a turn,
+	 *  place all of them as you wish by selecting one of
+	 *  your territories and adding the new units (addUnits)
+	 * 
+	 ******************************************************/
+	
 	@Override
 	public void assignReinforcements() {
 		// TODO Auto-generated method stub
@@ -65,6 +77,25 @@ public class SamAI extends Player{
 	 *  * All (I hope so) values will be checked for integrity ( != null or 0 )
 	 * 
 	 ******************************************************/
+	
+	// Decides to attack or not here
+	public void updateModel() {
+		super.updateModel();
+		
+		Map.checkIfContinentOwned(Map.AFRICA, this.occupiedTerritories);
+		Map.checkIfContinentOwned(Map.NORTH_AMERICA, this.occupiedTerritories);
+		Map.checkIfContinentOwned(Map.EUROPE, this.occupiedTerritories);
+		Map.checkIfContinentOwned(Map.ASIA, this.occupiedTerritories);
+		Map.checkIfContinentOwned(Map.AUSTRALIA, this.occupiedTerritories);
+		Map.checkIfContinentOwned(Map.SOUTH_AMERICA, this.occupiedTerritories);
+		
+		if(ran.nextInt(100) > 1){
+			this.willAttack = true;
+		} else {
+			this.willAttack = false;
+		}
+	}
+	
 	@Override
 	protected void chooseAttackerAndTarget() {
 		// TODO Auto-generated method stub
@@ -77,6 +108,7 @@ public class SamAI extends Player{
 		
 	}
 
+	// Analyze combat outcome, if required
 	@Override
 	public void postCombatUpdateModel(int myLostUntis, int enemyLostUnits) {
 		// TODO Auto-generated method stub
@@ -92,6 +124,9 @@ public class SamAI extends Player{
 	/*******************************************************
 	 * 
 	 *  MOVEMENT PHASE METHODS
+	 *  Set [this.moveOrigin] , [this.moveDestination] , [this.moveUnits]
+	 *  when you want to move units from one territory to another 
+	 *  (only once at the end of your turn)
 	 * 
 	 ******************************************************/
 	@Override
