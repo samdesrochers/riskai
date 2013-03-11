@@ -75,10 +75,11 @@ public abstract class Player {
 	// TO IMPLEMENT
 	public abstract String pickReinforceTerritory();
 	
-	
 	// Assign part of remaining reinforcements (Normal round)
 	// TO IMPLEMENT
 	public abstract void assignReinforcements();
+	
+	public abstract ArrayList<Card> tradeCards();
 	
 	//Functions doesn't validate if your moving your own soldiers
 	//Return true if valid move, false if invalid
@@ -197,8 +198,6 @@ public abstract class Player {
 		}
 		return true;
 	}
-	
-	public abstract ArrayList<Card> tradeCards();
 	
 	// Gets the total number of units of our player
 	protected int countUnits(){
