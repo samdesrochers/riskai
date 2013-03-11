@@ -219,7 +219,7 @@ public class RiskGame extends Canvas{
 
 	private void executeTurn(){
 
-		int currentNbTerritories = currentPlayer.occupiedTerritories.size() - 1;
+		int currentNbTerritories = currentPlayer.myOccupiedTerritories.size() - 1;
 
 		// Acquire and Place new reinforcements
 		executeReinforcementsPhase();
@@ -308,7 +308,7 @@ public class RiskGame extends Canvas{
 	private void executePostAttackPhase(int initialNbTerritories)
 	{
 		// Current player has won at least one territory during last combat phase
-		if(initialNbTerritories < currentPlayer.occupiedTerritories.size() -1){
+		if(initialNbTerritories < currentPlayer.myOccupiedTerritories.size() -1){
 			Card newcard = new Card();
 			if(Card.addCard(currentPlayer.cards, newcard)){
 				System.out.println(currentPlayer.name+" recieved a new Card");
@@ -336,7 +336,7 @@ public class RiskGame extends Canvas{
 		try {
 			synchronized (currentPlayer) {
 				for(Player p : players){
-					if(p.occupiedTerritories.size() == 0){
+					if(p.myOccupiedTerritories.size() == 0){
 						Scanner scan = new Scanner(System.in);
 						System.out.println("Player : " + p.name + " was Eliminated!!!");
 						players.remove(p);
@@ -359,9 +359,9 @@ public class RiskGame extends Canvas{
 	private int calculateNbReinforcements(){
 		int num = 3;
 
-		num += Map.getContinentReinforcements(currentPlayer.occupiedTerritories);
+		num += Map.getContinentReinforcements(currentPlayer.myOccupiedTerritories);
 
-		int nbControlledTerritories = currentPlayer.occupiedTerritories.size();
+		int nbControlledTerritories = currentPlayer.myOccupiedTerritories.size();
 
 		// Add by number of controlled territories
 		if(nbControlledTerritories > 30){
@@ -454,7 +454,7 @@ public class RiskGame extends Canvas{
             	synchronized (g2d) {
 	            	for(Player p : players){
 	                	synchronized (p) {
-	                    	for(Territory t : p.occupiedTerritories){
+	                    	for(Territory t : p.myOccupiedTerritories){
 	                    		synchronized (t) {
 	                    			g.setColor(p.color);
 	                    			g2d.drawString(Integer.toString(t.getUnits()), t.position.x, t.position.y);

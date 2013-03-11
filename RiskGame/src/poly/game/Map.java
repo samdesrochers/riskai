@@ -285,7 +285,7 @@ public class Map {
 
 				// First time asking for this country
 				if(!t.isOccupied){
-					player.occupiedTerritories.add(t);
+					player.myOccupiedTerritories.add(t);
 					t.setOwner(player);
 					t.addUnits(nbUnits);
 					return true;

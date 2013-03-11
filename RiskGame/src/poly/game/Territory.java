@@ -34,9 +34,9 @@ public class Territory {
 	
 	public void conquerTerritory(Player newP, Territory t){
 		System.out.println(newP.name + " conquered " + t.getOwner().name +" territory : "+t.name);
-		t.getOwner().occupiedTerritories.remove(t);
+		t.getOwner().myOccupiedTerritories.remove(t);
 		t.setOwner(newP);
-		newP.occupiedTerritories.add(t);
+		newP.myOccupiedTerritories.add(t);
 	}
 
 	public int getUnits() {

@@ -34,8 +34,8 @@ public class RandomAI extends Player {
 	}
 	
 	public String pickReinforceTerritory() {
-		int r = ran.nextInt(occupiedTerritories.size());
-		Territory pick = occupiedTerritories.get(r);
+		int r = ran.nextInt(myOccupiedTerritories.size());
+		Territory pick = myOccupiedTerritories.get(r);
 
 		return pick.name;
 	}
@@ -85,13 +85,13 @@ public class RandomAI extends Player {
 	// Make sure [this.remainingUnits] reaches 0 here
 	public void assignReinforcements() {
 		//random territory
-		int rt = ran.nextInt(occupiedTerritories.size());
+		int rt = ran.nextInt(myOccupiedTerritories.size());
 
 		// random nb of units
 		int ru = ran.nextInt(this.remainingUnits) + 1;
 
 		// assign random nb of units on the random territory
-		Territory pick = occupiedTerritories.get(rt);
+		Territory pick = myOccupiedTerritories.get(rt);
 		pick.addUnits(ru);
 
 		// Remove the units that were placed from your units pool
@@ -116,12 +116,12 @@ public class RandomAI extends Player {
 	public void updateModel() {
 		super.updateModel();
 		
-		Map.checkIfContinentOwned(Map.AFRICA, this.occupiedTerritories);
-		Map.checkIfContinentOwned(Map.NORTH_AMERICA, this.occupiedTerritories);
-		Map.checkIfContinentOwned(Map.EUROPE, this.occupiedTerritories);
-		Map.checkIfContinentOwned(Map.ASIA, this.occupiedTerritories);
-		Map.checkIfContinentOwned(Map.AUSTRALIA, this.occupiedTerritories);
-		Map.checkIfContinentOwned(Map.SOUTH_AMERICA, this.occupiedTerritories);
+		Map.checkIfContinentOwned(Map.AFRICA, this.myOccupiedTerritories);
+		Map.checkIfContinentOwned(Map.NORTH_AMERICA, this.myOccupiedTerritories);
+		Map.checkIfContinentOwned(Map.EUROPE, this.myOccupiedTerritories);
+		Map.checkIfContinentOwned(Map.ASIA, this.myOccupiedTerritories);
+		Map.checkIfContinentOwned(Map.AUSTRALIA, this.myOccupiedTerritories);
+		Map.checkIfContinentOwned(Map.SOUTH_AMERICA, this.myOccupiedTerritories);
 		
 		if(ran.nextInt(100) > 1){
 			this.willAttack = true;
@@ -134,11 +134,11 @@ public class RandomAI extends Player {
 	public void chooseAttackerAndTarget() {
 		int numberTerritoriesChecked = 0;
 		
-		while(numberTerritoriesChecked < occupiedTerritories.size()){
+		while(numberTerritoriesChecked < myOccupiedTerritories.size()){
 
 			// try a random territory in what we occupy
-			int rt = ran.nextInt(occupiedTerritories.size());
-			Territory attacker = occupiedTerritories.get(rt);
+			int rt = ran.nextInt(myOccupiedTerritories.size());
+			Territory attacker = myOccupiedTerritories.get(rt);
 
 			// Check all adjacent territories and try to find an enemy
 			for(int i = 0; i < attacker.adjacentTerritories.size(); i++){
@@ -184,7 +184,7 @@ public class RandomAI extends Player {
 	// if you want to move units from one territory to another (only once per turn)
 	@Override
 	public void chooseMovementTerritoriesAndUnits() {
-		this.moveOrigin = this.occupiedTerritories.get(ran.nextInt(occupiedTerritories.size()));
+		this.moveOrigin = this.myOccupiedTerritories.get(ran.nextInt(myOccupiedTerritories.size()));
 		this.moveDestination = this.moveOrigin.adjacentTerritories.get(ran.nextInt(moveOrigin.adjacentTerritories.size()));
 		this.moveUnits = this.moveDestination.getUnits() - 1;
 	}

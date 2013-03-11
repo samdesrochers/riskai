@@ -54,6 +54,8 @@ public class SamAI extends Player{
 	 ******************************************************/
 	
 	@Override
+	// Make sure [this.remainingUnits] reaches 0 here by assigning
+	// all of your received units to a territory you own in [this.myOccupiedTerritories]
 	public void assignReinforcements() {
 		// TODO Auto-generated method stub
 		
@@ -82,12 +84,12 @@ public class SamAI extends Player{
 	public void updateModel() {
 		super.updateModel();
 		
-		Map.checkIfContinentOwned(Map.AFRICA, this.occupiedTerritories);
-		Map.checkIfContinentOwned(Map.NORTH_AMERICA, this.occupiedTerritories);
-		Map.checkIfContinentOwned(Map.EUROPE, this.occupiedTerritories);
-		Map.checkIfContinentOwned(Map.ASIA, this.occupiedTerritories);
-		Map.checkIfContinentOwned(Map.AUSTRALIA, this.occupiedTerritories);
-		Map.checkIfContinentOwned(Map.SOUTH_AMERICA, this.occupiedTerritories);
+		Map.checkIfContinentOwned(Map.AFRICA, this.myOccupiedTerritories);
+		Map.checkIfContinentOwned(Map.NORTH_AMERICA, this.myOccupiedTerritories);
+		Map.checkIfContinentOwned(Map.EUROPE, this.myOccupiedTerritories);
+		Map.checkIfContinentOwned(Map.ASIA, this.myOccupiedTerritories);
+		Map.checkIfContinentOwned(Map.AUSTRALIA, this.myOccupiedTerritories);
+		Map.checkIfContinentOwned(Map.SOUTH_AMERICA, this.myOccupiedTerritories);
 		
 		if(ran.nextInt(100) > 1){
 			this.willAttack = true;

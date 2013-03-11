@@ -12,7 +12,7 @@ public abstract class Player {
 	public Color color;
 	
 	// List of all the occupied territories of this Player
-	public ArrayList<Territory> occupiedTerritories;
+	public ArrayList<Territory> myOccupiedTerritories;
 	
 	// List of all the territories of every players
 	public ArrayList<Territory> public_allTerritories;
@@ -58,14 +58,14 @@ public abstract class Player {
 		this.willAttack = false;
 		this.attackingUnits = 0;
 		this.cards = new ArrayList<Card>();
-		this.occupiedTerritories = new ArrayList<Territory>();
+		this.myOccupiedTerritories = new ArrayList<Territory>();
 		Map map = new Map();
 		this.private_allTerritories = map.generate();
 	}
 	
 	// TO subsclass
 	public void updateModel() {
-		this.numberOfTerritories = this.occupiedTerritories.size() - 1;
+		this.numberOfTerritories = this.myOccupiedTerritories.size() - 1;
 	}
 		
 	// Picks a territory (initial round)
@@ -159,7 +159,7 @@ public abstract class Player {
 		// Update our post combat model AI
 		this.postCombatUpdateModel(myLostUntis, enemyLostUnits);
 		
-		int currentTerritoriesCount = occupiedTerritories.size() - 1;
+		int currentTerritoriesCount = myOccupiedTerritories.size() - 1;
 		// Check if we got a new territory
 		if (currentTerritoriesCount > numberOfTerritories && this.attacker != null && this.target != null){
 			// Assign units to the new territory we got last round (refereed as target*)
@@ -198,7 +198,7 @@ public abstract class Player {
 	}
 	
 	public boolean isAlive(){
-		if(occupiedTerritories.size() == 0){
+		if(myOccupiedTerritories.size() == 0){
 			return false;
 		}
 		return true;
@@ -207,7 +207,7 @@ public abstract class Player {
 	// Gets the total number of units of our player
 	protected int countUnits(){
 		int units = 0;
-		for( Territory t : occupiedTerritories){
+		for( Territory t : myOccupiedTerritories){
 			units += t.getUnits();
 		}
 		return units;
@@ -216,7 +216,7 @@ public abstract class Player {
 	
 	public void printTerritories(){
 		System.out.println("--------- " + this.name + " Territories ---------");
-		for(Territory t : occupiedTerritories){
+		for(Territory t : myOccupiedTerritories){
 			System.out.println(t.name + " with " + t.getUnits() + " units");
 		}
 		System.out.println();
