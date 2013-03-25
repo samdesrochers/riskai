@@ -11,17 +11,19 @@ public class Territory {
 	public ArrayList<Territory> adjacentTerritories;
 	public String continent = "None";
 	public Point position;
+	public boolean isContinentFrontier = false;
 	
 	public int value = 0;	// Heuristic value of some sort
 	public boolean isOccupied = false;
 	
-	public Territory(String cont, String nm){
+	public Territory(String cont, String nm, boolean isFrontier){
 		this.setOwner(null);
 		this.adjacentTerritories = null;
 		this.continent = cont;
 		this.name = nm;
 		this.setUnits(0);	
 		this.isOccupied = false;
+		this.isContinentFrontier = isFrontier;
 		position = new Point(0,0);
 	}
 	
