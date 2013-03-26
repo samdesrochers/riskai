@@ -83,58 +83,58 @@ public class Map {
 		continents = new ArrayList<Continent>();
 
 		// North America
-		Territory quebec 			= new Territory(NORTH_AMERICA, QUEBEC);
-		Territory ontario 			= new Territory(NORTH_AMERICA, ONTARIO);
-		Territory alberta 			= new Territory(NORTH_AMERICA, ALBERTA);
-		Territory greenland			= new Territory(NORTH_AMERICA, GREENLAND);
-		Territory eastern_us 		= new Territory(NORTH_AMERICA, EASTERN_US);
-		Territory western_us 		= new Territory(NORTH_AMERICA, WESTERN_US);
-		Territory nw_territory 		= new Territory(NORTH_AMERICA, NW_TERRITORY);
-		Territory alaska 			= new Territory(NORTH_AMERICA, ALASKA);
-		Territory cent_america 		= new Territory(NORTH_AMERICA, CENT_AMERICA);
+		Territory quebec 			= new Territory(NORTH_AMERICA, QUEBEC, false);
+		Territory ontario 			= new Territory(NORTH_AMERICA, ONTARIO, false);
+		Territory alberta 			= new Territory(NORTH_AMERICA, ALBERTA, false);
+		Territory greenland			= new Territory(NORTH_AMERICA, GREENLAND, true);
+		Territory eastern_us 		= new Territory(NORTH_AMERICA, EASTERN_US, false);
+		Territory western_us 		= new Territory(NORTH_AMERICA, WESTERN_US, false);
+		Territory nw_territory 		= new Territory(NORTH_AMERICA, NW_TERRITORY, false);
+		Territory alaska 			= new Territory(NORTH_AMERICA, ALASKA, true);
+		Territory cent_america 		= new Territory(NORTH_AMERICA, CENT_AMERICA, true);
 
 		// South America
-		Territory venezuela 		= new Territory(SOUTH_AMERICA, VENEZUELA);
-		Territory brazil 			= new Territory(SOUTH_AMERICA, BRAZIL);
-		Territory peru 				= new Territory(SOUTH_AMERICA, PERU);
-		Territory argentina			= new Territory(SOUTH_AMERICA, ARGENTINA);
+		Territory venezuela 		= new Territory(SOUTH_AMERICA, VENEZUELA, true);
+		Territory brazil 			= new Territory(SOUTH_AMERICA, BRAZIL, true);
+		Territory peru 				= new Territory(SOUTH_AMERICA, PERU, false);
+		Territory argentina			= new Territory(SOUTH_AMERICA, ARGENTINA, false);
 
 		// Africa
-		Territory north_africa 		= new Territory(AFRICA, NORTH_AFRICA);
-		Territory egypt 			= new Territory(AFRICA, EGYPT);
-		Territory east_africa 		= new Territory(AFRICA, EAST_AFRICA);
-		Territory congo				= new Territory(AFRICA, CONGO);
-		Territory south_africa		= new Territory(AFRICA, SOUTH_AFRICA);
-		Territory madagascar		= new Territory(AFRICA, MADAGASCAR);
+		Territory north_africa 		= new Territory(AFRICA, NORTH_AFRICA, true);
+		Territory egypt 			= new Territory(AFRICA, EGYPT, true);
+		Territory east_africa 		= new Territory(AFRICA, EAST_AFRICA, false);
+		Territory congo				= new Territory(AFRICA, CONGO, false);
+		Territory south_africa		= new Territory(AFRICA, SOUTH_AFRICA, false);
+		Territory madagascar		= new Territory(AFRICA, MADAGASCAR, false);
 
 		// Europe
-		Territory iceland 			= new Territory(EUROPE, ICELAND);
-		Territory great_britain 	= new Territory(EUROPE, GREAT_BRITAIN);
-		Territory w_europe 			= new Territory(EUROPE, W_EUROPE);
-		Territory n_europe			= new Territory(EUROPE, N_EUROPE);
-		Territory s_europe			= new Territory(EUROPE, S_EUROPE);
-		Territory ukraine			= new Territory(EUROPE, UKRAINE);
-		Territory scandinavia		= new Territory(EUROPE, SCANDINAVIA);
+		Territory iceland 			= new Territory(EUROPE, ICELAND, true);
+		Territory great_britain 	= new Territory(EUROPE, GREAT_BRITAIN, false);
+		Territory w_europe 			= new Territory(EUROPE, W_EUROPE, true);
+		Territory n_europe			= new Territory(EUROPE, N_EUROPE, false);
+		Territory s_europe			= new Territory(EUROPE, S_EUROPE, true);
+		Territory ukraine			= new Territory(EUROPE, UKRAINE, true);
+		Territory scandinavia		= new Territory(EUROPE, SCANDINAVIA, false);
 
 		// Asia
-		Territory ural 				= new Territory(ASIA, URAL);
-		Territory afghanistan 		= new Territory(ASIA, AFGHANISTAN);
-		Territory middle_east 		= new Territory(ASIA, MIDDLE_EAST);
-		Territory india				= new Territory(ASIA, INDIA);
-		Territory siam				= new Territory(ASIA, SIAM);
-		Territory china				= new Territory(ASIA, CHINA);
-		Territory mongolia			= new Territory(ASIA, MONGOLIA);
-		Territory japan				= new Territory(ASIA, JAPAN);
-		Territory yakutsk			= new Territory(ASIA, YAKUTSK);
-		Territory irkutsk			= new Territory(ASIA, IRKUTSK);
-		Territory siberia			= new Territory(ASIA, SIBERIA);
-		Territory kamatchka			= new Territory(ASIA, KAMATCHKA);
+		Territory ural 				= new Territory(ASIA, URAL, true);
+		Territory afghanistan 		= new Territory(ASIA, AFGHANISTAN, true);
+		Territory middle_east 		= new Territory(ASIA, MIDDLE_EAST, true);
+		Territory india				= new Territory(ASIA, INDIA, false);
+		Territory siam				= new Territory(ASIA, SIAM, true);
+		Territory china				= new Territory(ASIA, CHINA, false);
+		Territory mongolia			= new Territory(ASIA, MONGOLIA, false);
+		Territory japan				= new Territory(ASIA, JAPAN, false);
+		Territory yakutsk			= new Territory(ASIA, YAKUTSK, false);
+		Territory irkutsk			= new Territory(ASIA, IRKUTSK, false);
+		Territory siberia			= new Territory(ASIA, SIBERIA, false);
+		Territory kamatchka			= new Territory(ASIA, KAMATCHKA, true);
 
 		// Australia
-		Territory indonesia 		= new Territory(AUSTRALIA, INDONESIA);
-		Territory new_guinea 		= new Territory(AUSTRALIA, NEW_GUINEA);
-		Territory w_australia 		= new Territory(AUSTRALIA, W_AUSTRALIA);
-		Territory e_australia		= new Territory(AUSTRALIA, E_AUSTRALIA);
+		Territory indonesia 		= new Territory(AUSTRALIA, INDONESIA, true);
+		Territory new_guinea 		= new Territory(AUSTRALIA, NEW_GUINEA, false);
+		Territory w_australia 		= new Territory(AUSTRALIA, W_AUSTRALIA, false);
+		Territory e_australia		= new Territory(AUSTRALIA, E_AUSTRALIA, false);
 
 		// North America - Adjacent
 		quebec.adjacentTerritories 			= new ArrayList<Territory>(Arrays.asList( ontario, greenland, eastern_us ));
