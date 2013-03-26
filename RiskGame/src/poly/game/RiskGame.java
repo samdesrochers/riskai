@@ -42,6 +42,8 @@ public class RiskGame extends Canvas{
 	
 	public static int BONUS_UNITS_COUNTER 	= 5;
 	protected static int STARTING_UNITS 	= 30;
+	protected static int MAX_UNITS 	= 200;
+
 	protected boolean isOver = false;
 	
 	public static JFrame frame;
@@ -93,7 +95,7 @@ public class RiskGame extends Canvas{
 		players = new ArrayList<Player>();
 		currentPlayerIndex = -1;
 
-		Player sam 	= new RandomAI("Sam");
+		Player sam 	= new SamAI("Sam");
 		sam.color = Color.white;
 		
 		Player sam2 = new RandomAI("Emile");
@@ -383,9 +385,9 @@ public class RiskGame extends Canvas{
 		num +=  getCardUnits();
 
 		int totalUnits = currentPlayer.countUnits();
-		if(totalUnits + num >= 100){
+		if(totalUnits + num >= MAX_UNITS){
 			System.out.println("Max Unit count reached");
-			num = 100 - currentPlayer.countUnits();
+			num = 0;
 		}
 		return num;
 	}

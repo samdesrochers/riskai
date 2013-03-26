@@ -287,6 +287,7 @@ public class Map {
 				if(!t.isOccupied){
 					player.myOccupiedTerritories.add(t);
 					t.setOwner(player);
+					t.isOccupied = true;
 					t.addUnits(nbUnits);
 					return true;
 				}

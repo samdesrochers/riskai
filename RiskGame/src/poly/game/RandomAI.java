@@ -123,7 +123,7 @@ public class RandomAI extends Player {
 		Map.checkIfContinentOwned(Map.AUSTRALIA, this.myOccupiedTerritories);
 		Map.checkIfContinentOwned(Map.SOUTH_AMERICA, this.myOccupiedTerritories);
 		
-		if(ran.nextInt(100) > 1){
+		if(ran.nextInt(5) > 1){
 			this.willAttack = true;
 		} else {
 			this.willAttack = false;
