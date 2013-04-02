@@ -102,7 +102,7 @@ public class Map {
 		// Africa
 		Territory north_africa 		= new Territory(AFRICA, NORTH_AFRICA, true);
 		Territory egypt 			= new Territory(AFRICA, EGYPT, true);
-		Territory east_africa 		= new Territory(AFRICA, EAST_AFRICA, false);
+		Territory east_africa 		= new Territory(AFRICA, EAST_AFRICA, true);
 		Territory congo				= new Territory(AFRICA, CONGO, false);
 		Territory south_africa		= new Territory(AFRICA, SOUTH_AFRICA, false);
 		Territory madagascar		= new Territory(AFRICA, MADAGASCAR, false);
@@ -154,7 +154,7 @@ public class Map {
 		argentina.adjacentTerritories 		= new ArrayList<Territory>(Arrays.asList( brazil, peru ));
 
 		// Africa - Adjacent
-		north_africa.adjacentTerritories 	= new ArrayList<Territory>(Arrays.asList( egypt, east_africa, congo, w_europe, s_europe ));
+		north_africa.adjacentTerritories 	= new ArrayList<Territory>(Arrays.asList( egypt, east_africa, congo, w_europe, s_europe, brazil ));
 		egypt.adjacentTerritories 			= new ArrayList<Territory>(Arrays.asList( north_africa, east_africa, s_europe, middle_east ));
 		east_africa.adjacentTerritories 	= new ArrayList<Territory>(Arrays.asList( egypt, north_africa, congo, madagascar, middle_east ));
 		congo.adjacentTerritories 			= new ArrayList<Territory>(Arrays.asList( north_africa, south_africa, east_africa ));
@@ -287,7 +287,6 @@ public class Map {
 				if(!t.isOccupied){
 					player.myOccupiedTerritories.add(t);
 					t.setOwner(player);
-					t.isOccupied = true;
 					t.addUnits(nbUnits);
 					return true;
 				}
