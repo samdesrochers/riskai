@@ -15,6 +15,12 @@ public class SamAI extends Player{
 	// List of all territories and members associated
 	private HashMap<String, Integer> allTerritoriesValues;
 	private HashMap<String, Integer> myTerritoriesValues;
+	private HashMap<String, Integer> moveTerritoriesValues;
+
+	private HashMap<String, Integer> initialHeuristicValues;
+	private HashMap<String, Integer> playersRanking;
+
+
 	private int territoryPickCounter;
 
 	// Attack members
@@ -26,6 +32,13 @@ public class SamAI extends Player{
 		//ran = new Random();
 		allTerritoriesValues = new HashMap<String, Integer>();
 		myTerritoriesValues = new HashMap<String, Integer>();
+		initialHeuristicValues = new HashMap<String, Integer>();
+		moveTerritoriesValues = new HashMap<String, Integer>();
+		playersRanking = new HashMap<String, Integer>();
+		
+		lastMoveOriginTerritory = new Territory("none", "blank", false);
+		lastMoveDestinationTerritory = new Territory("none", "blank", false);
+
 		territoryPickCounter = 0;
 		state = STATE_DEFENSIVE;
 	}
@@ -98,9 +111,8 @@ public class SamAI extends Player{
 	public void assignReinforcements() {
 
 		// Reset some values
-		turnAttackThreshold = 5;
-		nbTerritoriesGainedThisTurn = 0;
-		
+		turnAttackThreshold = 7;
+
 		// Updates the values and sorts the territories
 		reinforce_updateUtilityValues();
 
@@ -112,10 +124,10 @@ public class SamAI extends Player{
 			if(turnPick != null && this.canAttackOtherTerritory(turnPick)){
 
 				int unitsToPlace = this.remainingUnits - this.remainingUnits/3;
- 				turnPick.addUnits(unitsToPlace);
+				turnPick.addUnits(unitsToPlace);
 				this.remainingUnits -= unitsToPlace;
 				nbTerritories --;
-				
+
 				System.out.println("Sam placed "+ unitsToPlace+ " units on: "+turnPick.name);
 				territoryPickCounter ++;
 			} else {
@@ -123,6 +135,11 @@ public class SamAI extends Player{
 				nbTerritories --;
 			}
 		}
+		
+		// Evaluate the players ranking to decide the playstyle
+		evaluatePlayersRank();
+		turnAttackThreshold = (state == STATE_OFFENSIVE) ? turnAttackThreshold + 3 : turnAttackThreshold;
+		
 	}
 
 	@Override // Trade in cards trio when available
@@ -131,6 +148,8 @@ public class SamAI extends Player{
 			ArrayList<Card> inf_cards = new ArrayList<Card>();
 			ArrayList<Card> cav_cards = new ArrayList<Card>();
 			ArrayList<Card> art_cards = new ArrayList<Card>();
+			ArrayList<Card> tri_cards = new ArrayList<Card>();
+
 
 			for(int i = 0; i < this.cards.size(); i++){
 				Card card = this.cards.get(i);
@@ -142,12 +161,18 @@ public class SamAI extends Player{
 					art_cards.add(card);
 				} 
 			}
-			if(inf_cards.size() == 3){
-				return inf_cards;
-			} else if(cav_cards.size() == 3){
-				return cav_cards;
+			
+			if(art_cards.size() > 0 && cav_cards.size() > 0 && inf_cards.size() > 0){
+				tri_cards.add(art_cards.get(0));
+				tri_cards.add(cav_cards.get(0));
+				tri_cards.add(inf_cards.get(0));
+				return tri_cards;
 			} else if(art_cards.size() == 3){
 				return art_cards;
+			} else if(cav_cards.size() == 3){
+				return cav_cards;
+			} else if(inf_cards.size() == 3){
+				return inf_cards;
 			} 
 		}
 		return null;
@@ -170,12 +195,24 @@ public class SamAI extends Player{
 	public void updateModel() {
 		super.updateModel();
 
-		Map.checkIfContinentOwned(Map.AFRICA, this.myOccupiedTerritories);
-		Map.checkIfContinentOwned(Map.NORTH_AMERICA, this.myOccupiedTerritories);
-		Map.checkIfContinentOwned(Map.EUROPE, this.myOccupiedTerritories);
-		Map.checkIfContinentOwned(Map.ASIA, this.myOccupiedTerritories);
-		Map.checkIfContinentOwned(Map.AUSTRALIA, this.myOccupiedTerritories);
-		Map.checkIfContinentOwned(Map.SOUTH_AMERICA, this.myOccupiedTerritories);
+		if(Map.checkIfContinentOwned(Map.AFRICA, this.myOccupiedTerritories)){
+			CONTINENT_NA_UTILITY_VALUE = 5;
+		}
+		if(Map.checkIfContinentOwned(Map.NORTH_AMERICA, this.myOccupiedTerritories)){
+			CONTINENT_NA_UTILITY_VALUE = 8;
+		}
+		if(Map.checkIfContinentOwned(Map.EUROPE, this.myOccupiedTerritories)){
+			CONTINENT_NA_UTILITY_VALUE = 10;
+		}
+		if(Map.checkIfContinentOwned(Map.ASIA, this.myOccupiedTerritories)){
+			CONTINENT_NA_UTILITY_VALUE = 13;
+		}
+		if(Map.checkIfContinentOwned(Map.AUSTRALIA, this.myOccupiedTerritories)){
+			CONTINENT_NA_UTILITY_VALUE = 7;
+		}
+		if(Map.checkIfContinentOwned(Map.SOUTH_AMERICA, this.myOccupiedTerritories)){
+			CONTINENT_NA_UTILITY_VALUE = 7;
+		}
 
 		// Update values 
 		combat_updateUtilityValues();
@@ -192,7 +229,7 @@ public class SamAI extends Player{
 	@Override
 	protected void chooseAttackerAndTarget() {
 		// Check what state we currently are in
-		if(this.state == STATE_DEFENSIVE){
+		if(this.state == STATE_DEFENSIVE) {
 
 		} else if(this.state == STATE_OFFENSIVE){
 
@@ -217,18 +254,18 @@ public class SamAI extends Player{
 	// Analyze combat outcome, if required
 	@Override
 	public void postCombatUpdateModel(int myLostUntis, int enemyLostUnits) {
-		
+
 		// Takes differntial from last fight and update the implicated territories values
 		int lastAttackerValue = allTerritoriesValues.get(this.attacker.name);
 		int lastTargetValue = allTerritoriesValues.get(this.target.name);
 		int differential = 2*(enemyLostUnits - myLostUntis);
-		
+
 		// Next attack could be risky, penalize if we lose the number advantage
 		int newAttackerUnits = this.attacker.getUnits();
 		if(newAttackerUnits < 3){	
 			lastAttackerValue -= 5;
 		}
-		
+
 		if(differential == 2){
 			turnAttackThreshold ++; // Get cocky if total victory
 		} else if (differential == 1 && newAttackerUnits > 2) {
@@ -236,22 +273,22 @@ public class SamAI extends Player{
 			int val = (ran.nextFloat() > 0.63) ? 1 : 0; // 0.37% chance of winning when attacking 3 Vs 2 (best odds possible)
 			turnAttackThreshold += val;
 		} 
-		
+
 		// Slow down if you already have won a card
 		if(this.didRecieveCardThisTurn){
 			turnAttackThreshold --;
 		}
-		
+
 		// Update the attack counter if I lost a lot of units
 		nbUnitsLostThisTurn += myLostUntis;
-		if(nbUnitsLostThisTurn > 10){
+		if(nbUnitsLostThisTurn > 15){
 			turnAttackThreshold --;
 		}
 		
-		if(nbTerritoriesGainedThisTurn > 11){
-			turnAttackThreshold -= 2;
+		if(this.attacker.getUnits() > 2*this.target.getUnits()){
+			turnAttackThreshold ++;
 		}
-		
+
 		allTerritoriesValues.put(this.attacker.name, lastAttackerValue + differential);
 		allTerritoriesValues.put(this.target.name, lastTargetValue + differential);
 
@@ -272,11 +309,10 @@ public class SamAI extends Player{
 			conqueredTerritory.setUnits(this.attacker.getUnits() -1);
 			this.attacker.setUnits(1);
 		}
-		
+
 		if(this.state == STATE_DEFENSIVE) {
 			turnAttackThreshold --;
 		} 
-		nbTerritoriesGainedThisTurn ++;
 	}
 
 	/*******************************************************
@@ -287,13 +323,11 @@ public class SamAI extends Player{
 	 *  (only once at the end of your turn)
 	 * 
 	 ******************************************************/
+
 	@Override
 	public void chooseMovementTerritoriesAndUnits() {
 		// TODO Auto-generated method stub
-		this.moveDestination = null;
-		this.moveOrigin = null;
-		this.moveUnits = 0;
-
+		executeMovementPhase();
 		endTurn();
 	}
 
@@ -349,6 +383,7 @@ public class SamAI extends Player{
 
 			// Gradually generate the myTerritoriesValues hashmap (which won't be sorted at this point)
 			allTerritoriesValues.put(currentTerritory.name, value);
+			initialHeuristicValues.put(currentTerritory.name, value - 5);
 		}
 	}
 
@@ -357,7 +392,7 @@ public class SamAI extends Player{
 	 *  AI - DEPLOYEMENT METHODS
 	 * 
 	 ******************************************************/
-	
+
 	// When first choosing territories (empty Map, first phase)
 	static int deploy_lastValue = 1000;
 	static String deploy_lastPick = "";
@@ -367,7 +402,7 @@ public class SamAI extends Player{
 		for(int i = 0; i < this.public_allTerritories.size(); i++){
 			Territory temp = this.public_allTerritories.get(i);
 			int value = allTerritoriesValues.get(temp.name);
-			
+
 			if(value > highestValue && value <= deploy_lastValue && !temp.name.equals(deploy_lastPick) && temp.getOwner() == null){
 				t = temp;
 				highestValue = value;
@@ -378,7 +413,7 @@ public class SamAI extends Player{
 		myTerritoriesValues.put(deploy_lastPick, deploy_lastValue);
 		return t;
 	}
-	
+
 	// Update while deploying
 	private void deploy_updateUtilityValues()
 	{	
@@ -419,13 +454,13 @@ public class SamAI extends Player{
 		}
 		return newValue;
 	}
-	
+
 	/*******************************************************
 	 * 
 	 *  AI - REINFORCEMENT METHODS
 	 * 
 	 ******************************************************/
-	
+
 	private void reinforce_updateUtilityValues()
 	{	
 		myTerritoriesValues.clear();
@@ -447,7 +482,7 @@ public class SamAI extends Player{
 			}
 		}	
 	}
-	
+
 	private int reinforce_updateMyTerritoryValue(Territory t)
 	{
 		int newValue = 1;
@@ -456,67 +491,68 @@ public class SamAI extends Player{
 		int units = t.getUnits();					// Nb of units of the currently evaluated territory
 		String continent = t.continent;
 		int highestEnemyUnits = -1;
-		
+
 		// Value helping in the reinforcement decision based on enemy adjacent territories
 		int enemyDecider = 0;
-		
+
 		// Value helping in the reinforcement decision based on allied adjacent territories
 		int allyDecider = 0;
-		
+
 		// Update adjacent territories
 		for(int i = 0; i < t.adjacentTerritories.size(); i++){
 			Territory adjacent = t.adjacentTerritories.get(i);
-			
+
 			if(!adjacent.getOwner().name.equals(myName)){ // Territory is enemy
 				highestEnemyUnits = (adjacent.getUnits() > highestEnemyUnits) ? adjacent.getUnits() : highestEnemyUnits;
-				
+
 				// If in the same continent, +
-				int cont_value = (continent.equals(adjacent.continent)) ? getContinentUtilityValueByName(continent)/2 : 0;
-				
+				int cont_value = (continent.equals(adjacent.continent)) ? getContinentUtilityValueByName(continent) : 0;
+
 				// Enemy Territory Utility formula!
 				enemyDecider += (-adjacent.getUnits() + cont_value);
-				
+
 			} else { // One of my territory
 				int cont_value = (continent.equals(adjacent.continent)) ? getContinentUtilityValueByName(continent) : 0;
 				allyDecider += cont_value + adjacent.getUnits();
 			}
 		}
-		
+
 		// Update current territory
-		int attackCapability = (canAttackOtherTerritory(t)) ? 10 : -20; // Hard penalty if can't attack this turn
+		int attackCapability = (canAttackOtherTerritory(t)) ? 0 : -20; // Hard penalty if can't attack this turn
 		int cont_value = getContinentUtilityValueByName(continent);
+		int h_value = initialHeuristicValues.get(t.name);
 
 		// Owned Territory Utility formula!
-		newValue = attackCapability + units/REINFORCE_COMPANIONSHIP_FACTOR + enemyDecider + allyDecider - highestEnemyUnits + cont_value;
-				
+		newValue = attackCapability + units + enemyDecider + allyDecider - highestEnemyUnits + cont_value + h_value ;
+
 		return newValue;
 	}
-	
-	// Get next terirtory to reinforce
+
+	// Get next territory to reinforce
 	private Territory reinforce_getNextTerritoryToReinforce(int counter){
 		Territory t = null;
 		ValueComparator comp =  new ValueComparator(this.myTerritoriesValues);
-        TreeMap<String,Integer> sorted_map = new TreeMap<String,Integer>(comp);
-        sorted_map.putAll(this.myTerritoriesValues);
-        
-        // Chooses the next territory name in the sorted tree map according to the counter position
-        String key = ""; int idx = 0;
-        for (Entry<String, Integer> entry : sorted_map.entrySet())
-        {
-        	if(counter == idx){
-        		key = entry.getKey();
-        		break;
-        	}
-        	idx ++;
-        }
-        
-        // Selects the chosen territory from its name
-        for(int i = 0; i < this.myOccupiedTerritories.size(); i++){
-        	Territory temp = myOccupiedTerritories.get(i);
-        	if(temp.name.equals(key)){
-        		t = temp;
-        	}
-        }
+		TreeMap<String,Integer> sorted_map = new TreeMap<String,Integer>(comp);
+		sorted_map.putAll(this.myTerritoriesValues);
+
+		// Chooses the next territory name in the sorted tree map according to the counter position
+		String key = ""; int idx = 0;
+		for (Entry<String, Integer> entry : sorted_map.entrySet())
+		{
+			if(counter == idx){
+				key = entry.getKey();
+				break;
+			}
+			idx ++;
+		}
+
+		// Selects the chosen territory from its name
+		for(int i = 0; i < this.myOccupiedTerritories.size(); i++){
+			Territory temp = myOccupiedTerritories.get(i);
+			if(temp.name.equals(key)){
+				t = temp;
+			}
+		}
 		return t;
 	}
 
@@ -525,7 +561,7 @@ public class SamAI extends Player{
 	 *  AI - ATTACK METHODS
 	 *  
 	 ******************************************************/
-	
+
 	private void combat_updateUtilityValues()
 	{	
 		for (int i = 0; i < this.myOccupiedTerritories.size(); i++) {
@@ -558,45 +594,66 @@ public class SamAI extends Player{
 		int k_value = t.adjacentTerritories.size();	// Connectivity value, the higher it is, the worst
 		String continent = t.continent;
 		int highestEnemyUnits = -1;
-		
+		int lowEnemyUnitsBonus = 0;
+
 		// Update adjacent territories
 		for(int i = 0; i < t.adjacentTerritories.size(); i++){
 			Territory adjacent = t.adjacentTerritories.get(i);
-			
+
 			if(!adjacent.getOwner().name.equals(myName)){ // Territory is enemy
 				highestEnemyUnits = (adjacent.getUnits() > highestEnemyUnits) ? adjacent.getUnits() : highestEnemyUnits;
-			
+
+				//lowEnemyUnitsBonus = (adjacent.getUnits() < units - 5) ? 15 : 0;
+				lowEnemyUnitsBonus = (lowEnemyUnitsBonus > adjacent.getUnits()%3) ? lowEnemyUnitsBonus : adjacent.getUnits()%3;
+				//lowEnemyUnitsBonus = adjacent.getUnits()%3;
+
 				// If in the same continent, +
-				int cont_value = (continent.equals(adjacent.continent)) ? 2+getContinentUtilityValueByName(adjacent.continent) : 0;
+				int cont_value = (continent.equals(adjacent.continent)) ? getContinentUtilityValueByName(adjacent.continent) : 0;
 
 				int victoryOddsValue = (units > adjacent.getUnits()) ? 4 : -6;
 				
+				int imminentDestruction = (adjacent.getUnits() < 3) ? 20 : 0;
+
 				// Enemy Territory Utility formula!
-				int adjValue = -k_value + 3*units + cont_value + victoryOddsValue;
-				
+				int adjValue = 3*units + cont_value + victoryOddsValue - adjacent.getUnits() + imminentDestruction;
+
 				adjValue = (adjValue > 500) ? 500 : adjValue;
 				adjValue = (adjValue < 1) ? 1 : adjValue;
-				allTerritoriesValues.put(adjacent.name, adjValue);
-				
-			} else { // One of my territory
+
+				// Check if new value is superior, only modify if true
+				if(allTerritoriesValues.get(adjacent.name) != null){
+					int lastValue = allTerritoriesValues.get(adjacent.name);
+					if(adjValue > lastValue){
+						allTerritoriesValues.put(adjacent.name, adjValue);
+					}
+				} else{
+					allTerritoriesValues.put(adjacent.name, adjValue);
+				}
+
+			} else { // One of my adjacent territory
 				int cont_value = (continent.equals(adjacent.continent)) ? 5+getContinentUtilityValueByName(continent) : 0;
 				int adjValue = k_value + units + cont_value;
-				allTerritoriesValues.put(adjacent.name, adjValue);
+
+				// Check if new value is superior, only modify if true
+				int lastValue = allTerritoriesValues.get(adjacent.name);
+				if(adjValue > lastValue){
+					allTerritoriesValues.put(adjacent.name, adjValue);
+				}
 			}
 		}
-		
+
 		// Update current territory
-		int attackCapability = (canAttackOtherTerritory(t)) ? 3 : -5;
+		int attackCapability = (canAttackOtherTerritory(t)) ? 0 : -10;
 		int attackCapacity = (units > 1) ? 1 : -10;
-		int cont_value = 3+getContinentUtilityValueByName(t.continent);
-		
+		int cont_value = getContinentUtilityValueByName(t.continent);
+
 		// Owned Territory Utility formula!
-		newValue = (int) (cont_value + attackCapability + attackCapacity + 2*units + k_value - highestEnemyUnits);
-				
+		newValue = (int) (2*cont_value + attackCapability + attackCapacity + 2*units - highestEnemyUnits + 3*lowEnemyUnitsBonus );
+
 		return newValue;
 	}
 
-	
+
 	// Pick the current most valuable territory I own and 
 	// try to find an adjacent territory to attack that has
 	// a high value
@@ -605,72 +662,190 @@ public class SamAI extends Player{
 		int highestVal = -1;
 		int att_highestVal = -1;
 		int lowestUnits = 1000;
-		Territory attackCandidate = null;
+		Territory bestAttackCandidate = null;
 		Territory targetCandidate = null;
-		
+
 		int allTerritoriesCount = this.myOccupiedTerritories.size() - 1;
-		String lastAttckerTried = "";
-		
-		while(allTerritoriesCount > 0) {
-			
-			// Get attacker according to best value
-			for (int i = 0; i < myOccupiedTerritories.size(); i++) {
-				Territory tempAttackCandidate = myOccupiedTerritories.get(i);
-				int value = myTerritoriesValues.get(tempAttackCandidate.name);
-				if(tempAttackCandidate.getUnits() > 1 && canAttackOtherTerritory(tempAttackCandidate) && !tempAttackCandidate.name.equals(lastAttckerTried)){
-					if(value > att_highestVal){
-						att_highestVal = value;
-						attackCandidate = tempAttackCandidate;
-					}
-				} 
+		String lastAttckerTried = "";	// If a candidate is discarded, the algorithm won't pick the same choice indefinitely because of this value
+
+		// Get the potential attacker candidates, which are those that actually CAN attack
+		ArrayList<Territory> attackerCandidates = new ArrayList<Territory>();
+		for(Territory t : myOccupiedTerritories){
+			if(canAttackOtherTerritory(t) && t.getUnits() >= 2){
+				attackerCandidates.add(t);
 			}
-			
-			// Get target with a UCS graph algorithm with a single level, 
-			// the adjacent territories of the attacker candidate, according
-			// to the calculated utility value
-			if(attackCandidate != null) {
-				lastAttckerTried = attackCandidate.name;
-				int discrimination = 0;
-				while(discrimination < 42){
-					for (int j = 0; j < attackCandidate.adjacentTerritories.size(); j++) {
-						Territory tempTargetCandidate = attackCandidate.adjacentTerritories.get(j);
-						if(!tempTargetCandidate.getOwner().name.equals(myName)){
-							int value = allTerritoriesValues.get(tempTargetCandidate.name);
-							if(tempTargetCandidate.getUnits() <= lowestUnits - discrimination){
-								lowestUnits = tempTargetCandidate.getUnits();
-									if(value > highestVal){ // If the value is better
+		}
+		if(attackerCandidates.size() != 0) { // if the candidate list is empty, skip attack
+			while(allTerritoriesCount > 0) { 
+
+				// Get attacker according to best value
+				for (int i = 0; i < attackerCandidates.size(); i++) {
+					Territory tempAttackCandidate = attackerCandidates.get(i);
+					int value = myTerritoriesValues.get(tempAttackCandidate.name);
+
+					if(!tempAttackCandidate.name.equals(lastAttckerTried)){ // match against last best candidate if the last try failed
+						if(value > att_highestVal){
+							att_highestVal = value;
+							bestAttackCandidate = tempAttackCandidate;
+						}
+					} 
+				}
+
+				// Get target with a UCS graph algorithm with a single level, 
+				// the adjacent territories of the attacker candidate, according
+				// to the calculated utility value
+				if(bestAttackCandidate!= null) {
+					lastAttckerTried = bestAttackCandidate.name;
+					int candidatesTried = 0;
+					while(candidatesTried < 42){ 														// Tries all of the 42 territories
+
+						for (int j = 0; j < bestAttackCandidate.adjacentTerritories.size(); j++) { 		// Check the attackerTarget adjacent territories
+							Territory tempTargetCandidate = bestAttackCandidate.adjacentTerritories.get(j);
+
+							if(!tempTargetCandidate.getOwner().name.equals(myName)){					// Check if we aren't attacking ourself
+								int value = allTerritoriesValues.get(tempTargetCandidate.name);			// Value from HashMap
+
+								if(tempTargetCandidate.getUnits() <= lowestUnits - candidatesTried){		// Check if it's the lowest nb of units around
+									lowestUnits = tempTargetCandidate.getUnits();
+									if(value > highestVal){ 											// If the value is better than the last best
 										highestVal = value;
 										targetCandidate = tempTargetCandidate;
 									}
-							} 
+								} 
+							}
+						}
+						if(targetCandidate == null){
+							candidatesTried += 1;	//Next pass won't be as sever
+						} else {
+							candidatesTried = 1000;	// Breaks out of loop, found a target
 						}
 					}
-					if(targetCandidate == null){
-						discrimination += 1;
+
+					if(targetCandidate != null) {
+						for(int i = 0; i < this.public_allTerritories.size(); i++){
+							Territory t = this.public_allTerritories.get(i);
+							if(t.name.equals(bestAttackCandidate.name)){
+								this.attacker = t;
+							} else if(t.name.equals(targetCandidate.name)){
+								this.target = t;
+							}
+						}
+						if(this.attacker != null && this.target != null){ 	// If attacker and target found, break out of loop
+							allTerritoriesCount = -1000;
+						} else {
+							allTerritoriesCount --;							// else, retry the whole process with lower expectations
+						}
 					} else {
-						discrimination = 100;
+						System.out.println("[SAM] : Not attacking this turn : no target");
+						allTerritoriesCount--;
 					}
-				}
-				
-				if(targetCandidate != null) {
-					for(int i = 0; i < this.public_allTerritories.size(); i++){
-						Territory t = this.public_allTerritories.get(i);
-						if(t.name.equals(attackCandidate.name)){
-							this.attacker = t;
-						} else if(t.name.equals(targetCandidate.name)){
-							this.target = t;
-						}
-					}
-					allTerritoriesCount = -1;
+
 				} else {
-					System.out.println("[SAM] : Not attacking this turn : no target");
+					System.out.println("[SAM] : Not attacking this turn : no attacker");
 					allTerritoriesCount--;
 				}
-				
-			} else {
-				System.out.println("[SAM] : Not attacking this turn : no attacker");
-				allTerritoriesCount--;
+			} 
+		} else {
+			System.out.println("[SAM] : No attacking candidates");
+		}
+	}
+	
+	/*******************************************************
+	 * 
+	 *  AI - UNITS MOVEMENTS 
+	 *  
+	 ******************************************************/
+
+	private void executeMovementPhase(){
+		move_findMostValuableMovement();
+	}
+	
+	private void move_findMostValuableMovement()
+	{	
+		ArrayList<Territory> originCandidates = new ArrayList<Territory>();
+		moveTerritoriesValues.clear();
+		
+		// First pass : check if any territory is incapable of attacking, meaning it is surrounded by allied territories.
+		for(Territory t : myOccupiedTerritories){
+			if(!canAttackOtherTerritory(t) && t.getUnits() > 1){
+				originCandidates.add(t);
 			}
+		}
+
+		// If no territories were chosen in the loop above, there is no point moving (not optimal)
+		if(originCandidates.size() != 0){	
+			int maxUnits = -1000;
+			int maxValue = -1000;
+			Territory bestOriginCandidate = null;
+			Territory bestDestinationCandidate = null;
+
+			// Get the best origin candidate (the one with the most Units)
+			for(Territory t : originCandidates){
+				int units = t.getUnits();
+				if(units > maxUnits){	
+					maxUnits = units;
+					bestOriginCandidate = t;
+				}
+			}
+
+			move_updateTerritoryValues(bestOriginCandidate);
+			
+			// Get the best destination candidate (the one with the best Value)
+			for(Territory t : bestOriginCandidate.adjacentTerritories){
+				int value = moveTerritoriesValues.get(t.name);
+				if(value > maxValue && t.getOwner().name.equals(myName)){	
+					maxValue = value;
+					bestDestinationCandidate = t;
+				}
+			}
+			
+			if(lastMoveOriginTerritory.name.equals(bestDestinationCandidate.name)){
+				Random ran = new Random();
+				bestDestinationCandidate = bestOriginCandidate.adjacentTerritories.get(ran.nextInt(bestOriginCandidate.adjacentTerritories.size()));
+				if(!bestDestinationCandidate.getOwner().name.equals(myName)){
+					System.out.println("Oops");
+				}
+			}
+			
+			// Final check
+			if(bestOriginCandidate != null && bestDestinationCandidate != null && maxUnits >= 2 &&
+					(!lastMoveOriginTerritory.name.equals(bestOriginCandidate.name) || !lastMoveDestinationTerritory.name.equals(bestDestinationCandidate.name))){
+				this.moveDestination = bestDestinationCandidate;
+				this.moveOrigin = bestOriginCandidate;
+				this.moveUnits = maxUnits - 1;
+				lastMoveDestinationTerritory = this.moveDestination;
+				lastMoveOriginTerritory = this.moveOrigin;
+			} else {
+				System.out.println("[SAM] : Error picking move territories");
+			}
+		} else {
+			System.out.println("[SAM] : No move candidates");
+		}	
+	}
+	
+	private Territory lastMoveDestinationTerritory;
+	private Territory lastMoveOriginTerritory;
+	
+	// Updates the origin adjacent territories  value
+	private void move_updateTerritoryValues(Territory origin){
+		for(Territory ter : origin.adjacentTerritories){				// All of my territories
+			int value = 1;
+			
+			for(Territory adj : ter.adjacentTerritories){				// All territories adjacent to my territories
+				if(adj.getOwner().name.equals(myName)){ 				// ally territory
+					value +=  (canAttackOtherTerritory(ter)) ? 15 : 0;	// the allied territory can attack another one next turn
+				} else { 												// enemy territory
+					value += (adj.getUnits() < 2) ? 2 : 0;
+					value += (adj.getUnits() > ter.getUnits()) ? 3 : 0;
+					value += 3;
+				}
+			}
+
+			value += initialHeuristicValues.get(ter.name);
+			value += (ter.getUnits() < 2) ? 12 : 0;
+			
+			moveTerritoriesValues.put(ter.name, value);
+
 		}
 	}
 	
@@ -692,48 +867,107 @@ public class SamAI extends Player{
 
 	// Reset state values
 	private void endTurn(){
-		nbTurnsPlayed ++;
+		//nbTurnsPlayed ++;
 		this.didRecieveCardThisTurn = false;
 		this.nbOfAttacksTried = 0;
-
+		turnAttackThreshold = 4;
 	}
-	
+
 	// HashMap sorting (via TreeMap)
 	class ValueComparator implements Comparator<String> {
 
-	    HashMap<String, Integer> base;
-	    public ValueComparator(HashMap<String, Integer> base) {
-	        this.base = base;
-	    }
+		HashMap<String, Integer> base;
+		public ValueComparator(HashMap<String, Integer> base) {
+			this.base = base;
+		}
 
-	    // Note: this comparator imposes orderings that are inconsistent with equals.    
-	    public int compare(String a, String b) {
-	        if (base.get(a) >= base.get(b)) {
-	            return -1;
-	        } else {
-	            return 1;
-	        } // returning 0 would merge keys
-	    }
+		// Note: this comparator imposes orderings that are inconsistent with equals.    
+		public int compare(String a, String b) {
+			if (base.get(a) >= base.get(b)) {
+				return -1;
+			} else {
+				return 1;
+			} // returning 0 would merge keys
+		}
+	}
+
+	private int getContinentUtilityValueByName(String name){
+		int value = 0;
+		float continentValue = getPercentageOfContinentOwned(name);
+		if(name.equals(Map.NORTH_AMERICA)){
+			value = CONTINENT_NA_UTILITY_VALUE;
+		} else if(name.equals(Map.SOUTH_AMERICA)){
+			value = CONTINENT_SA_UTILITY_VALUE;
+		} else if(name.equals(Map.AUSTRALIA)){
+			value = CONTINENT_AU_UTILITY_VALUE;
+		} else if(name.equals(Map.AFRICA)){
+			value = CONTINENT_AF_UTILITY_VALUE;
+		} else if(name.equals(Map.EUROPE)){
+			value = CONTINENT_EU_UTILITY_VALUE;
+		} else if(name.equals(Map.ASIA)){
+			value = CONTINENT_AS_UTILITY_VALUE;			  
+		}
+
+		return value + (int)continentValue;
+	}
+
+	private float getPercentageOfContinentOwned(String name){
+		Continent continent = null;
+
+		if(name.equals(Map.NORTH_AMERICA)){
+			continent = Map.northAmerica;
+		} else if(name.equals(Map.SOUTH_AMERICA)){
+			continent = Map.southAmerica;
+		} else if(name.equals(Map.AUSTRALIA)){
+			continent = Map.australia;
+		} else if(name.equals(Map.AFRICA)){
+			continent = Map.africa;
+		} else if(name.equals(Map.EUROPE)){
+			continent = Map.europe;
+		} else if(name.equals(Map.ASIA)){
+			continent = Map.asia;			  
+		} else {
+			return -1; // error occured
+		}
+
+		float targetCount = continent.territories.size();
+		float actualCount = 0;
+		for(Territory t : myOccupiedTerritories){
+			if(t.continent.equals(continent.name)){
+				actualCount ++;
+			}
+		}
+
+		float percentage = actualCount / targetCount;
+
+		return 20 * percentage;
 	}
 	
-	private int getContinentUtilityValueByName(String name){
-		  int value = 0;
-		  
-		  if(name.equals(Map.NORTH_AMERICA)){
-			  value = CONTINENT_NA_UTILITY_VALUE;
-		  } else if(name.equals(Map.SOUTH_AMERICA)){
-			  value = CONTINENT_SA_UTILITY_VALUE;
-		  } else if(name.equals(Map.AUSTRALIA)){
-			  value = CONTINENT_AU_UTILITY_VALUE;
-		  } else if(name.equals(Map.AFRICA)){
-			  value = CONTINENT_AF_UTILITY_VALUE;
-		  } else if(name.equals(Map.EUROPE)){
-			  value = CONTINENT_EU_UTILITY_VALUE;
-		  } else if(name.equals(Map.ASIA)){
-			  value = CONTINENT_AS_UTILITY_VALUE;			  
-		  }
-		  
-		  return value;
+	private void evaluatePlayersRank(){
+		for(Territory t : public_allTerritories){
+			try {
+				int value = playersRanking.get(t.getOwner().name);
+				playersRanking.put(t.getOwner().name, value+t.getUnits());
+			} catch (Exception e) {
+				playersRanking.put(t.getOwner().name,t.getUnits());
+			}
+		}
+		
+		ValueComparator comp =  new ValueComparator(this.playersRanking);
+		TreeMap<String,Integer> sorted_map = new TreeMap<String,Integer>(comp);
+		sorted_map.putAll(this.playersRanking);
+
+		// Chooses the next territory name in the sorted tree map according to the counter position
+		int idx = 0;
+		for (Entry<String, Integer> entry : sorted_map.entrySet())
+		{
+			this.state = STATE_DEFENSIVE;
+			if(entry.getKey().equals(myName) && idx < 2){
+				this.state = STATE_OFFENSIVE;
+				break;
+			}
+			idx ++;
+		}
 	}
 
 	/*******************************************************
@@ -741,25 +975,22 @@ public class SamAI extends Player{
 	 *  PRIVATE FIELDS
 	 * 
 	 ******************************************************/
+	
+	private int CONTINENT_NA_UTILITY_VALUE = 6;
+	private int CONTINENT_SA_UTILITY_VALUE = 4;
+	private int CONTINENT_AF_UTILITY_VALUE = 4;
+	private int CONTINENT_AS_UTILITY_VALUE = 1;
+	private int CONTINENT_AU_UTILITY_VALUE = 3;
+	private int CONTINENT_EU_UTILITY_VALUE = 1;
 
-
-	private final int CONTINENT_NA_UTILITY_VALUE = 5;
-	private final int CONTINENT_SA_UTILITY_VALUE = 3;
-	private final int CONTINENT_AF_UTILITY_VALUE = 2;
-	private final int CONTINENT_AS_UTILITY_VALUE = 1;
-	private final int CONTINENT_AU_UTILITY_VALUE = 3;
-	private final int CONTINENT_EU_UTILITY_VALUE = 1;
-
-	private int nbTurnsPlayed = 1;
-	private int REINFORCE_COMPANIONSHIP_FACTOR = 3;
+	//private int nbTurnsPlayed = 1;
 
 	private final int STATE_DEFENSIVE = 0;
 	private final int STATE_OFFENSIVE = 1;
-	
+
 	// Will attack variables
 	private int turnAttackThreshold = 4;
 	private int nbUnitsLostThisTurn = 0;
-	private int nbTerritoriesGainedThisTurn = 0;
 
 	private final String myName = "Sam";
 
