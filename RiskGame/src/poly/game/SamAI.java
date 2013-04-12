@@ -111,7 +111,7 @@ public class SamAI extends Player{
 	public void assignReinforcements() {
 
 		// Reset some values
-		turnAttackThreshold = 7;
+		turnAttackThreshold = ATTACK_THRESHOLD;
 
 		// Updates the values and sorts the territories
 		reinforce_updateUtilityValues();
@@ -138,7 +138,7 @@ public class SamAI extends Player{
 		
 		// Evaluate the players ranking to decide the playstyle
 		evaluatePlayersRank();
-		turnAttackThreshold = (state == STATE_OFFENSIVE) ? turnAttackThreshold + 3 : turnAttackThreshold;
+		turnAttackThreshold = (state == STATE_OFFENSIVE) ? turnAttackThreshold + 4 : turnAttackThreshold;
 		
 	}
 
@@ -263,7 +263,7 @@ public class SamAI extends Player{
 		// Next attack could be risky, penalize if we lose the number advantage
 		int newAttackerUnits = this.attacker.getUnits();
 		if(newAttackerUnits < 3){	
-			lastAttackerValue -= 5;
+			lastAttackerValue -= 8;
 		}
 
 		if(differential == 2){
@@ -281,7 +281,7 @@ public class SamAI extends Player{
 
 		// Update the attack counter if I lost a lot of units
 		nbUnitsLostThisTurn += myLostUntis;
-		if(nbUnitsLostThisTurn > 15){
+		if(nbUnitsLostThisTurn > 35){
 			turnAttackThreshold --;
 		}
 		
@@ -377,7 +377,9 @@ public class SamAI extends Player{
 				value += 6;
 			} else if(currentTerritory.name.equals(Map.QUEBEC)){
 				value += 8;
-			}
+			} else if(currentTerritory.name.equals(Map.CHINA)){
+				value += 13;
+			} 
 
 			value += currentTerritory.adjacentTerritories.size(); // Connectivity to other territories is a +
 
@@ -509,7 +511,7 @@ public class SamAI extends Player{
 				int cont_value = (continent.equals(adjacent.continent)) ? getContinentUtilityValueByName(continent) : 0;
 
 				// Enemy Territory Utility formula!
-				enemyDecider += (-adjacent.getUnits() + cont_value);
+				enemyDecider += (-adjacent.getUnits()/2 + cont_value);
 
 			} else { // One of my territory
 				int cont_value = (continent.equals(adjacent.continent)) ? getContinentUtilityValueByName(continent) : 0;
@@ -594,7 +596,9 @@ public class SamAI extends Player{
 		int k_value = t.adjacentTerritories.size();	// Connectivity value, the higher it is, the worst
 		String continent = t.continent;
 		int highestEnemyUnits = -1;
+		int lowestEnemyUnits = 1000;
 		int lowEnemyUnitsBonus = 0;
+		int easyTargetBonus = 0;
 
 		// Update adjacent territories
 		for(int i = 0; i < t.adjacentTerritories.size(); i++){
@@ -603,7 +607,7 @@ public class SamAI extends Player{
 			if(!adjacent.getOwner().name.equals(myName)){ // Territory is enemy
 				highestEnemyUnits = (adjacent.getUnits() > highestEnemyUnits) ? adjacent.getUnits() : highestEnemyUnits;
 
-				//lowEnemyUnitsBonus = (adjacent.getUnits() < units - 5) ? 15 : 0;
+				lowestEnemyUnits = (adjacent.getUnits() < lowestEnemyUnits) ? adjacent.getUnits() : lowestEnemyUnits;
 				lowEnemyUnitsBonus = (lowEnemyUnitsBonus > adjacent.getUnits()%3) ? lowEnemyUnitsBonus : adjacent.getUnits()%3;
 				//lowEnemyUnitsBonus = adjacent.getUnits()%3;
 
@@ -641,14 +645,17 @@ public class SamAI extends Player{
 				}
 			}
 		}
-
+		
+		// LOW ENEMY = 1
+		easyTargetBonus = (lowestEnemyUnits == 1) ? 15 : 0;
+		
 		// Update current territory
 		int attackCapability = (canAttackOtherTerritory(t)) ? 0 : -10;
 		int attackCapacity = (units > 1) ? 1 : -10;
 		int cont_value = getContinentUtilityValueByName(t.continent);
 
 		// Owned Territory Utility formula!
-		newValue = (int) (2*cont_value + attackCapability + attackCapacity + 2*units - highestEnemyUnits + 3*lowEnemyUnitsBonus );
+		newValue = (int) (2*cont_value + attackCapability + attackCapacity + 2*units - highestEnemyUnits + 3*lowEnemyUnitsBonus + easyTargetBonus );
 
 		return newValue;
 	}
@@ -987,6 +994,7 @@ public class SamAI extends Player{
 
 	private final int STATE_DEFENSIVE = 0;
 	private final int STATE_OFFENSIVE = 1;
+	private final int ATTACK_THRESHOLD = 8;
 
 	// Will attack variables
 	private int turnAttackThreshold = 4;

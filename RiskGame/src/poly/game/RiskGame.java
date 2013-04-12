@@ -31,18 +31,18 @@ public class RiskGame extends Canvas{
 	public static final int PHASE_MOVE_ARMIES 	= 4;
 	public static final int PHASE_BONUS 		= 5;
 
-	public ArrayList<Player> 				players;
-	public ArrayList<Territory> 		territories;
+	public ArrayList<Player> 	players;
+	public ArrayList<Territory> territories;
 	
-	public Territory					attacker;
-	public Territory					defender;
+	public Territory	attacker;
+	public Territory	defender;
 
 	public Player currentPlayer;
 	public int currentPlayerIndex;
 	
 	public static int BONUS_UNITS_COUNTER 	= 5;
 	protected static int STARTING_UNITS 	= 30;
-	protected static int MAX_UNITS 	= 200;
+	protected static int MAX_UNITS 			= 300;
 
 	protected boolean isOver = false;
 	
@@ -95,23 +95,26 @@ public class RiskGame extends Canvas{
 		players = new ArrayList<Player>();
 		currentPlayerIndex = -1;
 
-		Player sam 	= new SamAI("Sam");
-		sam.color = Color.white;
+		Player p1 	= new SamAI("Sam");
+		p1.color = Color.white;
 		
-		Player sam2 = new RandomAI("Emile");
-		sam2.color = Color.blue;
+		Player p2 = new RandomAI("Emile");
+		p2.color = Color.blue;
 		
-		Player sam3 = new RandomAI("Pong");
-		sam3.color = Color.green;
+		Player p3 = new RandomAI("Pong");
+		p3.color = Color.green;
 		
-		Player sam4 = new RandomAI("Maxim");
-		sam4.color = Color.red;
+		Player p4 = new MaxAI("Maxim");
+		p4.color = Color.red;
+		
+		Player p5 = new RandomAI("Hugo");
+		p5.color = Color.orange;
 
-		players.add(sam);
-		players.add(sam2);
-		players.add(sam3);
-		players.add(sam4);
-
+		players.add(p1);
+		players.add(p2);
+		players.add(p3);
+		players.add(p4);
+		players.add(p5);
 	}
 
 	// Players each pick a territory one after the other
@@ -230,7 +233,7 @@ public class RiskGame extends Canvas{
 		executeAttackPhase();
 		
 		try {
-			Thread.sleep(500);
+			Thread.sleep(60);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -339,22 +342,25 @@ public class RiskGame extends Canvas{
 			synchronized (currentPlayer) {
 				for(Player p : players){
 					if(p.myOccupiedTerritories.size() == 0){
-						Scanner scan = new Scanner(System.in);
 						System.out.println("Player : " + p.name + " was Eliminated!!!");
 						players.remove(p);
-						String userInput = scan.nextLine();
+						
+						//Scanner scan = new Scanner(System.in);
+						//String userInput = scan.nextLine();
 					}
 				}
 			}
 		} catch (Exception e) {
-			System.out.println("UNEXPECTED ERROR!!!");
-			System.out.println(e.toString());
 		}
 
 		if(players.size() == 1){
 			isOver = true;
 			Player winner = players.get(0);
 			System.out.println(winner.name + " WON THE GAME !!!");
+			Scanner scan = new Scanner(System.in);
+			String userInput = scan.nextLine();
+			frame.invalidate();
+			System.exit(0);
 		}
 	}
 
@@ -366,7 +372,11 @@ public class RiskGame extends Canvas{
 		int nbControlledTerritories = currentPlayer.myOccupiedTerritories.size();
 
 		// Add by number of controlled territories
-		if(nbControlledTerritories > 30){
+		if(nbControlledTerritories > 36){
+			num += 9;
+		} else if(nbControlledTerritories > 33 && nbControlledTerritories < 36){
+			num += 8;
+		} else if(nbControlledTerritories > 30 && nbControlledTerritories < 33){
 			num += 7;
 		} else if(nbControlledTerritories > 27 && nbControlledTerritories < 30){
 			num += 6;

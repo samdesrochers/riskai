@@ -85,17 +85,21 @@ public class RandomAI extends Player {
 	// Make sure [this.remainingUnits] reaches 0 here
 	public void assignReinforcements() {
 		//random territory
-		int rt = ran.nextInt(myOccupiedTerritories.size());
+		try {
+			int rt = ran.nextInt(myOccupiedTerritories.size());
 
-		// random nb of units
-		int ru = ran.nextInt(this.remainingUnits) + 1;
+			// random nb of units
+			int ru = ran.nextInt(this.remainingUnits) + 1;
 
-		// assign random nb of units on the random territory
-		Territory pick = myOccupiedTerritories.get(rt);
-		pick.addUnits(ru);
+			// assign random nb of units on the random territory
+			Territory pick = myOccupiedTerritories.get(rt);
+			pick.addUnits(ru);
 
-		// Remove the units that were placed from your units pool
-		this.remainingUnits -= ru;
+			// Remove the units that were placed from your units pool
+			this.remainingUnits -= ru;
+		} catch (Exception e) {
+			System.out.println("[RANDOM] : Error assigning reinforcements");
+		}
 	}
 
 	/*******************************************************
