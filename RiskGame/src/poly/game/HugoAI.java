@@ -8,6 +8,8 @@ public class HugoAI extends Player
 
   public static int m_numeroTerritoireARenforcir;
 	private ArrayList<String> m_listeTerritoiresVoulusInitial;
+	private double m_ratio;
+	private Boolean m_territoireConquisDerniereAttaque;
 	
 	
 	public HugoAI(String name)
@@ -27,6 +29,10 @@ public class HugoAI extends Player
 		m_listeTerritoiresVoulusInitial.add("eastern_us");
 		
 		m_numeroTerritoireARenforcir = 0;
+		
+		m_ratio = 1.5;
+		
+		m_territoireConquisDerniereAttaque = false;
 	}
 	
 	/*******************************************************
@@ -255,7 +261,8 @@ public class HugoAI extends Player
 		target = null;
 		attacker = null;
 		
-		// la recherche cherche un territoire ou la difference d'unite entre l'attaquant et la cible respecte la regle de 1.5 superieur
+		// la recherche cherche un territoire ou la difference d'unite entre l'attaquant et la cible respecte la regle du ratio superieur, celui-ci
+		// augmente a chaque attaque pour attaquer de moins en moins de territoire
 		for(Territory monTerritoire : this.myOccupiedTerritories)
 		{
 			int nbrUnites = monTerritoire.getUnits();
@@ -270,13 +277,14 @@ public class HugoAI extends Player
 					}
 					int diff = monTerritoire.getUnits() - territoireVoisin.getUnits();
 					
-					// si mon territoire a 1.5 fois le nombre d'unites de la cible et que le nombre d'unite ennemis est inferieur a l'ancienne valeur
-					if (territoireVoisin.getUnits() <= 1.5 * monTerritoire.getUnits() + 1 && (territoireVoisin.getUnits() < nombreUniteCible))
+					// si mon territoire a m_ratio fois le nombre d'unites de la cible et que le nombre d'unite ennemis est inferieur a l'ancienne valeur
+					if (territoireVoisin.getUnits() <= m_ratio * monTerritoire.getUnits() + 1 && (territoireVoisin.getUnits() < nombreUniteCible))
 					{
 						nombreUniteCible = territoireVoisin.getUnits();
 						attacker = monTerritoire;
 						target = territoireVoisin;
 						willAttack = true;
+						
 						
 						cibleTrouveSuivantRegle = true;
 					}
@@ -292,10 +300,12 @@ public class HugoAI extends Player
 			}
 		}
 		
+		m_ratio += 0.1;
+		
 		
 		// si aucun territoire respectait la regle, on va essaye d'aller chercher un territoire ou il n'y a qu'une armee
 		// s'il y avait un tel territoire
-		if(!cibleTrouveSuivantRegle && attaquantPossiblePourUneUnite != null && ciblePossibleAyantUneUnite != null)
+		if(!cibleTrouveSuivantRegle && attaquantPossiblePourUneUnite != null && ciblePossibleAyantUneUnite != null && !m_territoireConquisDerniereAttaque)
 		{
 			attacker = attaquantPossiblePourUneUnite;
 			target = ciblePossibleAyantUneUnite;
