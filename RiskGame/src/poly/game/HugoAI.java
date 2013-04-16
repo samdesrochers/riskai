@@ -197,7 +197,7 @@ public class HugoAI extends Player
 				} 
 			}
 			
-			// on verifie si ya possibilitÃ© d'une carte de chaque pcq
+			// on verifie si ya possibilit̩ d'une carte de chaque pcq
 			// ca vaut plus d'armees
 			if(inf_cards.size() >= 1 && cav_cards.size() >= 1 && art_cards.size() >= 1)
 			{

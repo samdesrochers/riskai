@@ -9,10 +9,11 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
 
-import javax.swing.ImageIcon;
+import javax.imageio.ImageIO;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -483,7 +484,11 @@ public class RiskGame extends Canvas{
 	
 	public void setupUI(){
         frame = new JFrame("Risk");
-        riskMap = new ImageIcon(this.getClass().getResource("riskmap.png")).getImage();
+        try {
+			riskMap =  ImageIO.read(getClass().getResource("/images/riskmap.png"));
+		} catch (IOException e) {
+			System.out.println("Error loading image from ressources");
+		}
         font = new Font ("Verdana", Font.BOLD , 18);
         
         distributionButton = new JButton("Distribute");
