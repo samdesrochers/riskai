@@ -112,8 +112,8 @@ public class HugoAI extends Player
 	// Choose a territory to reinforce with 1 to 3 units
 	// Returns the territory to reinforce
 	@Override
-	public String pickReinforceTerritory() {
-		// TODO Auto-generated method stub
+	public String pickReinforceTerritory()
+	{
 		int territoire = m_numeroTerritoireARenforcir;
 		
 		m_numeroTerritoireARenforcir++;
@@ -142,8 +142,6 @@ public class HugoAI extends Player
 	@Override
 	public void assignReinforcements()
 	{
-		// TODO Auto-generated method stub
-		
 		if(remainingUnits == 0)
 		{
 			return;
@@ -197,7 +195,7 @@ public class HugoAI extends Player
 				} 
 			}
 			
-			// on verifie si ya possibilit̩ d'une carte de chaque pcq
+			// on verifie si ya possibilitÃ© d'une carte de chaque pcq
 			// ca vaut plus d'armees
 			if(inf_cards.size() >= 1 && cav_cards.size() >= 1 && art_cards.size() >= 1)
 			{
