@@ -99,13 +99,13 @@ public class HugoAI extends Player
 	@Override
 	public int chooseNbOfUnits(int remainingThisTurn)
 	{
-		if(remainingThisTurn < 3)
+		if(remainingThisTurn < 2)
 		{
 			return remainingThisTurn;
 		}
 		else
 		{
-			return 3;
+			return 2;
 		}
 	}
 
@@ -163,9 +163,10 @@ public class HugoAI extends Player
 			else
 			{
 				t.addUnits(remainingUnits);
-				remainingUnits = 0;
+				remainingUnits = 0;				
 				break;
 			}
+			
 		}
 
 	}
@@ -196,7 +197,7 @@ public class HugoAI extends Player
 				} 
 			}
 			
-			// on verifie si ya possibilité d'une carte de chaque pcq
+			// on verifie si ya possibilitÃ© d'une carte de chaque pcq
 			// ca vaut plus d'armees
 			if(inf_cards.size() >= 1 && cav_cards.size() >= 1 && art_cards.size() >= 1)
 			{
@@ -311,17 +312,7 @@ public class HugoAI extends Player
 	
 	private Boolean estAMoi(Territory territoire)
 	{
-		String nom = territoire.name;
-		
-		for(Territory t : this.myOccupiedTerritories)
-		{
-			if (t.name == nom)
-			{
-				return true;
-			}
-		}
-		
-		return false;
+		return territoire.getOwner().name == name;
 	}
 	
 	@Override
@@ -337,9 +328,13 @@ public class HugoAI extends Player
 		{
 			this.attackingUnits = 0;
 		}
-		else if(this.attacker.getUnits() >= 3 )
+		else if(this.attacker.getUnits() > 3 )
 		{
 			this.attackingUnits = 3;
+		}
+		else if(this.attacker.getUnits() == 3 )
+		{
+			this.attackingUnits = 2;
 		}
 		// si la cible ne lui reste qu'une unite, je met les 2 pour augmenter mes chances
 		else if(this.attacker.getUnits() == 2  && this.target.getUnits() == 1)
@@ -347,7 +342,7 @@ public class HugoAI extends Player
 			this.attackingUnits = 2;
 		}
 		// si la cible a 2 armees, je n'en met qu'une pour garder mon territoire
-		else if(this.attacker.getUnits() == 2  && this.target.getUnits() == 2)
+		else if(this.attacker.getUnits() == 2  && this.target.getUnits() >= 2)
 		{
 			this.attackingUnits = 1;
 		}
@@ -377,6 +372,11 @@ public class HugoAI extends Player
 		}
 		// le territoire n'a plus aucun voisin ennemi, j'envoie donc toutes
 		// les armees sur le nouveau
+		/*else if(attacker.getUnits() > 2)
+		{
+			conqueredTerritory.setUnits(this.attacker.getUnits() - 2);
+			this.attacker.setUnits(2);
+		}*/
 		else
 		{
 			conqueredTerritory.setUnits(this.attacker.getUnits() - 1);
@@ -427,8 +427,12 @@ public class HugoAI extends Player
 		if(a != null && de != null)
 		{
 			// on procede au mouvement des armees
-			a.addUnits(de.getUnits() - 1);
+			int nbr = de.getUnits() - 1;
+			
+			a.addUnits(nbr);
 			de.setUnits(1);
+			
+			
 		}
 	}
 	
