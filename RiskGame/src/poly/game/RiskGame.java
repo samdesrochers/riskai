@@ -9,6 +9,7 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
@@ -485,7 +486,9 @@ public class RiskGame extends Canvas{
 	public void setupUI(){
         frame = new JFrame("Risk");
         try {
-			riskMap =  ImageIO.read(getClass().getResource("/images/riskmap.png"));
+        	//URL url = getClass().getResource("/images/riskmap.png");
+        	riskMap = ImageIO.read(new FileInputStream("img/images/riskmap.png"));
+			//riskMap =  ImageIO.read(url);
 		} catch (IOException e) {
 			System.out.println("Error loading image from ressources");
 		}
