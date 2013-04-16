@@ -2,13 +2,10 @@ package poly.game;
 
 import java.awt.Canvas;
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -52,6 +49,8 @@ public class RiskGame extends Canvas{
 	 * Risk game global class
 	 */
 	private static final long serialVersionUID = 1L;
+	private static final long sleepTime = 1L;
+	
 	public static final int PHASE_INITIAL 		= 0;
 	public static final int PHASE_TURN_BEGINS 	= 1;
 	public static final int PHASE_REINFORCE		= 2;
@@ -95,15 +94,6 @@ public class RiskGame extends Canvas{
 		initPlayers();
 		initTerritories();
 		
-		while(!isDistributionReady){
-			try {
-				Thread.sleep(5);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		
 		ditributeTerritories();
 		placeRemainingUnits();
 		frame.repaint();
@@ -131,16 +121,16 @@ public class RiskGame extends Canvas{
 		Player p2 = new RandomAI("Emile");
 		p2.color = Color.blue;
 		
-		Player p3 = new RandomAI("Pong");
+		Player p3 = new PlayerGandhi("Pong");
 		p3.color = Color.green;
 		
 		Player p4 = new MaxAI("Maxim");
 		p4.color = Color.red;
 		
 		Player p5 = new HugoAI("Hugo");
-		p5.color = Color.orange;
+		p5.color = Color.black;
 
-		players.add(p2);
+		//players.add(p2);
 		players.add(p1);
 		players.add(p3);
 		players.add(p4);
@@ -276,7 +266,7 @@ public class RiskGame extends Canvas{
 			frame.repaint();
 			
 			try {
-				Thread.sleep(30);
+				Thread.sleep(sleepTime);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -339,7 +329,7 @@ public class RiskGame extends Canvas{
 						frame.repaint();
 						
 						try {
-							Thread.sleep(30);
+							Thread.sleep(sleepTime);
 						} catch (InterruptedException e) {
 							e.printStackTrace();
 						}
@@ -494,19 +484,6 @@ public class RiskGame extends Canvas{
 		}
         font = new Font ("Verdana", Font.BOLD , 18);
         
-        distributionButton = new JButton("Distribute");
-        distributionButton.setVisible(true);
-        distributionButton.setSize(new Dimension(100, 30));
-        distributionButton.setLocation(0, 0);
-        
-        distributionButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				isDistributionReady = true;
-				distributionButton.setEnabled(false);
-			}
-        });
-        frame.add(distributionButton);
         frame.add(new MyPanel());
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(1200, 780);
