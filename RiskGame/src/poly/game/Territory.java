@@ -34,6 +34,7 @@ public class Territory {
 		}
 	}
 	
+	// Manage the action of conquering a territory, using the new owner and the desired territory
 	public void conquerTerritory(Player newP, Territory t){
 		System.out.println(newP.name + " conquered " + t.getOwner().name +" territory : "+t.name);
 		t.getOwner().myOccupiedTerritories.remove(t);
