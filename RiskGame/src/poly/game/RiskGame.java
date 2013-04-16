@@ -9,14 +9,42 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
-import java.util.Scanner;
 
-import javax.swing.ImageIcon;
+import javax.imageio.ImageIO;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+
+/**********************************************************
+ * 					  - RISK AI - 
+ * 
+ * School project developed for Ecole Polytechnique Montreal's
+ * INF4215 Class : Artificial Intelligence.
+ * 
+ * This program implements the traditional RISK board game
+ * while using intelligent agents to play the game.  The user
+ * only launches the program and lets those AIs play against 
+ * each other.  Each student was tasked to write its own
+ * AI so we could host a final competition by the end of the 
+ * project.  
+ * 
+ * Some rules may differ from the actual Official Rules
+ * 
+ * Author : Samuel Des Rochers
+ *  
+ * Contributor : Maxim Essipovitch
+ * 
+ * Paritcipants :	Samuel Des Rochers
+ * 					Maxim Essipovitch
+ * 					Hugo Cardin
+ * 					Emile Ouelette-Delorme
+ * 					Philippe Rosa-Pong
+ * 
+ **********************************************************/
 
 public class RiskGame extends Canvas{
 
@@ -31,20 +59,21 @@ public class RiskGame extends Canvas{
 	public static final int PHASE_MOVE_ARMIES 	= 4;
 	public static final int PHASE_BONUS 		= 5;
 
-	public ArrayList<Player> 				players;
-	public ArrayList<Territory> 		territories;
+	public ArrayList<Player> 	players;
+	public ArrayList<Territory> territories;
 	
-	public Territory					attacker;
-	public Territory					defender;
+	public Territory	attacker;
+	public Territory	defender;
 
 	public Player currentPlayer;
 	public int currentPlayerIndex;
 	
 	public static int BONUS_UNITS_COUNTER 	= 5;
-	protected static int STARTING_UNITS 	= 30;
-	protected static int MAX_UNITS 	= 200;
+	protected static int STARTING_UNITS 	= 35;
+	protected static int MAX_UNITS 			= 300;
 
 	protected boolean isOver = false;
+	public String winner = "";
 	
 	public static JFrame frame;
 	public JButton distributionButton;
@@ -68,12 +97,13 @@ public class RiskGame extends Canvas{
 		
 		while(!isDistributionReady){
 			try {
-				Thread.sleep(60);
+				Thread.sleep(5);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
+		
 		ditributeTerritories();
 		placeRemainingUnits();
 		frame.repaint();
@@ -95,23 +125,26 @@ public class RiskGame extends Canvas{
 		players = new ArrayList<Player>();
 		currentPlayerIndex = -1;
 
-		Player sam 	= new SamAI("Sam");
-		sam.color = Color.white;
+		Player p1 	= new SamAI("Sam");
+		p1.color = Color.white;
 		
-		Player sam2 = new RandomAI("Emile");
-		sam2.color = Color.blue;
+		Player p2 = new RandomAI("Emile");
+		p2.color = Color.blue;
 		
-		Player sam3 = new RandomAI("Pong");
-		sam3.color = Color.green;
+		Player p3 = new RandomAI("Pong");
+		p3.color = Color.green;
 		
-		Player sam4 = new RandomAI("Maxim");
-		sam4.color = Color.red;
+		Player p4 = new MaxAI("Maxim");
+		p4.color = Color.red;
+		
+		Player p5 = new HugoAI("Hugo");
+		p5.color = Color.orange;
 
-		players.add(sam);
-		players.add(sam2);
-		players.add(sam3);
-		players.add(sam4);
-
+		players.add(p2);
+		players.add(p1);
+		players.add(p3);
+		players.add(p4);
+		players.add(p5);
 	}
 
 	// Players each pick a territory one after the other
@@ -177,7 +210,7 @@ public class RiskGame extends Canvas{
 						}
 					}
 				} else{
-					System.out.println("An error occured");
+					System.out.println("[Deployement - Reinforcements] : An error occured");
 				}
 
 				// No more reinforcements, player is out	
@@ -205,43 +238,55 @@ public class RiskGame extends Canvas{
 		currentPlayer = players.get(currentPlayerIndex);
 
 		while(!isOver){
+			
+			// Check if game is over
+			executeGameOverCheck();
+			
 			// Execute the turn for currentPlayer
 			executeTurn();
+			
+			// Check if game is over
 			executeGameOverCheck();
 
 			// Next player
 			currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
 			currentPlayer = players.get(currentPlayerIndex);
-			
+			winner = currentPlayer.name;
 			// draw frame
 			frame.repaint();
 		}
 		System.out.println("Game Over!");
+		
 	}
 
 	private void executeTurn(){
 
 		int currentNbTerritories = currentPlayer.myOccupiedTerritories.size() - 1;
 
-		// Acquire and Place new reinforcements
-		executeReinforcementsPhase();
+		// Make sure the player still has a territory (isn't gameover)
+		if(currentPlayer.myOccupiedTerritories.size() > 0){
+			
+			// Acquire and Place new reinforcements
+			executeReinforcementsPhase();
+			
+			// Attack other territories
+			executeAttackPhase();
 
-		// Attack other territories
-		executeAttackPhase();
-		
-		try {
-			Thread.sleep(500);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			// draw frame
+			frame.repaint();
+			
+			try {
+				Thread.sleep(30);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+	
+			// Hand out a card if necessary
+			executePostAttackPhase(currentNbTerritories);		
+			
+			// Move units from a territory to another
+			executeMovementPhase();
 		}
-
-		// Hand out a card if necessary
-		executePostAttackPhase(currentNbTerritories);
-		
-		// Move units from a territory to another
-		executeMovementPhase();
-
 	}
 
 	private void executeReinforcementsPhase(){
@@ -253,13 +298,12 @@ public class RiskGame extends Canvas{
 
 		currentPlayer.printTerritories();
 
-		while(currentPlayer.remainingUnits > 0){
+		while(currentPlayer.remainingUnits > 0 && players.size() > 1){
 			currentPlayer.assignReinforcements();
 		}
 	}
 
 	private void executeAttackPhase(){
-		Scanner scan = new Scanner(System.in);
 
 		// Analyze board situation when about to enter combat (AI) 
 		currentPlayer.updateModel();
@@ -290,6 +334,15 @@ public class RiskGame extends Canvas{
 						// passing the currentPlayer lost units and the defending player lost units
 						// for results analysis or else
 						currentPlayer.combatAnalysis(unitsLost[0], unitsLost[1]);
+						
+						// draw frame
+						frame.repaint();
+						
+						try {
+							Thread.sleep(30);
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
 					}
 				} else {
 					System.out.println("Too many or too few units chosen : "+units);
@@ -339,22 +392,27 @@ public class RiskGame extends Canvas{
 			synchronized (currentPlayer) {
 				for(Player p : players){
 					if(p.myOccupiedTerritories.size() == 0){
-						Scanner scan = new Scanner(System.in);
 						System.out.println("Player : " + p.name + " was Eliminated!!!");
 						players.remove(p);
-						String userInput = scan.nextLine();
+						
+						//Scanner scan = new Scanner(System.in);
+						//String userInput = scan.nextLine();
 					}
 				}
 			}
 		} catch (Exception e) {
-			System.out.println("UNEXPECTED ERROR!!!");
-			System.out.println(e.toString());
 		}
 
 		if(players.size() == 1){
 			isOver = true;
 			Player winner = players.get(0);
 			System.out.println(winner.name + " WON THE GAME !!!");
+			//Scanner scan = new Scanner(System.in);
+			//String userInput = scan.nextLine();
+			frame.setVisible(false); //you can't see me!
+			frame.dispose();
+			
+			//System.exit(0);
 		}
 	}
 
@@ -366,7 +424,11 @@ public class RiskGame extends Canvas{
 		int nbControlledTerritories = currentPlayer.myOccupiedTerritories.size();
 
 		// Add by number of controlled territories
-		if(nbControlledTerritories > 30){
+		if(nbControlledTerritories > 36){
+			num += 9;
+		} else if(nbControlledTerritories > 33 && nbControlledTerritories < 36){
+			num += 8;
+		} else if(nbControlledTerritories > 30 && nbControlledTerritories < 33){
 			num += 7;
 		} else if(nbControlledTerritories > 27 && nbControlledTerritories < 30){
 			num += 6;
@@ -388,7 +450,7 @@ public class RiskGame extends Canvas{
 		if(totalUnits + num >= MAX_UNITS){
 			System.out.println("Max Unit count reached");
 			num = 0;
-		}
+		} 
 		return num;
 	}
 	
@@ -401,6 +463,8 @@ public class RiskGame extends Canvas{
 					bonus += BONUS_UNITS_COUNTER;
 					if(BONUS_UNITS_COUNTER < 40){
 						BONUS_UNITS_COUNTER += 5;
+					} else {
+						BONUS_UNITS_COUNTER = 40;
 					}
 					return bonus;
 				} else {
@@ -415,9 +479,19 @@ public class RiskGame extends Canvas{
 		return 0;
 	}
 	
+	public String getWinnerName(){
+		return winner;
+	}
+	
 	public void setupUI(){
         frame = new JFrame("Risk");
-        riskMap = new ImageIcon(this.getClass().getResource("riskmap.png")).getImage();
+        try {
+        	//URL url = getClass().getResource("/images/riskmap.png");
+        	riskMap = ImageIO.read(new FileInputStream("img/images/riskmap.png"));
+			//riskMap =  ImageIO.read(url);
+		} catch (IOException e) {
+			System.out.println("Error loading image from ressources");
+		}
         font = new Font ("Verdana", Font.BOLD , 18);
         
         distributionButton = new JButton("Distribute");

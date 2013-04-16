@@ -162,10 +162,12 @@ public abstract class Player {
 		int currentTerritoriesCount = myOccupiedTerritories.size() - 1;
 		// Check if we got a new territory
 		if (currentTerritoriesCount > numberOfTerritories && this.attacker != null && this.target != null){
+			
 			// Assign units to the new territory we got last round (refereed as target*)
 			// Note : this could be any number as long as there is at least one remaining
 			// unit on the attacking territory.
 			this.didGainNewTerritory(this.target);
+			
 			System.out.println("New units moving from :" +this.attacker.name +" which has " + this.attacker.getUnits());
 			System.out.println("New territory :"+target.name +" now has " + target.getUnits() + " units" );
 		}
