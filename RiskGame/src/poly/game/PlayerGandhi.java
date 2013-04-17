@@ -519,10 +519,34 @@ public class PlayerGandhi extends Player {
 			}
 			else //Si on a des frontlines mais qu'ils sont assez fortifier pour pouvoir renforcer les internes
 			{
-				int rt = ran.nextInt(myOccupiedTerritories.size());
+				if(this.remainingUnits > 0)
+				{
+					int rt = ran.nextInt(myOccupiedTerritories.size());
+					int ru = 0;
+					// random nb of units
 
+					ru = ran.nextInt(this.remainingUnits) + 1;
+				
+
+					// assign random nb of units on the random territory
+					Territory pick = myOccupiedTerritories.get(rt);
+					pick.addUnits(ru);
+					// Remove the units that were placed from your units pool
+					this.remainingUnits -= ru;
+				}
+			}
+		}
+		
+		else
+		{
+			if(this.remainingUnits > 0)
+			{
+				int rt = ran.nextInt(myOccupiedTerritories.size());
+				int ru = 0;
 				// random nb of units
-				int ru = ran.nextInt(this.remainingUnits) + 1;
+
+				ru = ran.nextInt(this.remainingUnits) + 1;
+			
 
 				// assign random nb of units on the random territory
 				Territory pick = myOccupiedTerritories.get(rt);
@@ -530,25 +554,6 @@ public class PlayerGandhi extends Player {
 				// Remove the units that were placed from your units pool
 				this.remainingUnits -= ru;
 			}
-		}
-		
-		else
-		{
-			//random territory
-			int rt = ran.nextInt(myOccupiedTerritories.size());
-			int ru = 0;
-			// random nb of units
-			if(this.remainingUnits > 0)
-			{
-				ru = ran.nextInt(this.remainingUnits) + 1;
-			}
-			
-
-			// assign random nb of units on the random territory
-			Territory pick = myOccupiedTerritories.get(rt);
-			pick.addUnits(ru);
-			// Remove the units that were placed from your units pool
-			this.remainingUnits -= ru;
 		}
 	}
 
