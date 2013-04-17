@@ -2,13 +2,15 @@ package poly.game;
 
 import java.util.ArrayList;
 import java.util.Vector;
+import java.util.Random;
 
 public class PoreuxAI extends Player {
 
-	//private Random ran;
+	private Random ran;
+	int nombreTours;
 	public PoreuxAI(String name) {
 		super(name);
-		//ran = new Random();
+		ran = new Random();
 	}
 
 	/*******************************************************
@@ -19,13 +21,29 @@ public class PoreuxAI extends Player {
 	
 	// Picks the next non occupied territory (TO IMPLEMENT)
 	public String chooseTerritory() {
+		int r = ran.nextInt()%3;
+		nombreTours = 0;
+		
+		//1/3 chances de commencer dans l'afrique, amérique du sud ou l'australie (le plus efficace suite à des tests)
 		for(Territory t : public_allTerritories)
 		{
-			if(t.continent == Map.AUSTRALIA && !t.isOccupied)
-			{
-				return t.name;
-			}
+			if(r==0)
+				if(t.continent == Map.AFRICA && !t.isOccupied)
+				{
+					return t.name;
+				}
+			if(r==1)
+				if(t.continent == Map.SOUTH_AMERICA && !t.isOccupied)
+				{
+					return t.name;
+				}
+			if(r==2)
+				if(t.continent == Map.AUSTRALIA && !t.isOccupied)
+				{
+					return t.name;
+				}
 		}
+		//si le continent choisi est plein
 		for(Territory t : public_allTerritories)
 		{
 			if(!t.isOccupied)
@@ -41,17 +59,22 @@ public class PoreuxAI extends Player {
 		return remainingThisTurn;
 	}
 	
-	public String pickReinforceTerritory() {
+	
+	public String pickReinforceTerritory() 
+	{
+		//toutes les unités de départ sont placées sur le même territoire, dans la mesure ou il a un pays voisin ennemi
 		for(Territory t: myOccupiedTerritories)
 		{
-			for(Territory adjacentt: t.adjacentTerritories)
-			{
-				if(!myOccupiedTerritories.contains(adjacentt))
+				for(Territory adjacentt: t.adjacentTerritories)
 				{
-					return t.name;
+					if(!myOccupiedTerritories.contains(adjacentt))
+					{
+						return t.name;
+					}
 				}
-			}
+				
 		}
+		
 		return "error";
 	}
 
@@ -69,6 +92,8 @@ public class PoreuxAI extends Player {
 	// Must be all of the same type, or one of each (3) types
 	// Return null if you don't want to trade cards
 	public ArrayList<Card> tradeCards(){
+		
+		//choisit toujours de jouer une série dès qu'il en as une.
 		if(this.cards.size() >= 3){
 			ArrayList<Card> inf_cards = new ArrayList<Card>();
 			ArrayList<Card> cav_cards = new ArrayList<Card>();
@@ -103,7 +128,7 @@ public class PoreuxAI extends Player {
 		return null;
 	}
 	
-	//retourne le nombre de joueurs total restant
+	//retourne le nombre de joueurs total restant dans la partie, INCLUANT soi-même
 	private int nbJoueursRestants()
 	{
 		Vector<Player> players = new Vector<Player>();
@@ -126,15 +151,25 @@ public class PoreuxAI extends Player {
 			{
 				if(!myOccupiedTerritories.contains(tAdja))
 				{
-					int scorePotentiel = (int) (t.getUnits()- Math.pow(tAdja.getUnits(),1+((nbJoueurs-2)/2)));
+					//cette variable permet de prioritiser légèrement l'australie et l'amérique du sud face aux autres continents.
+					int variableInfluence = 0;
+					if(tAdja.continent == Map.AUSTRALIA)
+						variableInfluence +=5;
+					if(tAdja.continent == Map.SOUTH_AMERICA)
+						variableInfluence +=5;
+					//le scorepotentiel agit comme heuristique
+					int scorePotentiel = (int) (t.getUnits()- Math.pow(tAdja.getUnits(),1+((nbJoueurs-2)/2)))/*+variableInfluence*/;
 					if(scorePotentiel > proieScore && (t.getUnits() + remainingUnits)< 300)
 					{
+						//proieScore agit comme heuristique maximale
 						proieScore = scorePotentiel;
+						//le terrotoire otpimal est le territoire associé à l'heuristique maximale
 						OptimalTerritoire = t;
 					}
 				}
 			}
 		}
+		//toutes les unités sont placées sur le territoire optimal.
 		OptimalTerritoire.addUnits(remainingUnits);
 		this.remainingUnits = 0;
 	}
@@ -171,30 +206,82 @@ public class PoreuxAI extends Player {
 		
 		int nbJoueurs = nbJoueursRestants();
 		int proieScore = -10000;
+		
+		//Cette boucle sert a déterminer le territoire d'attaque et attaqué qui sont optimal
 		for(Territory t: myOccupiedTerritories)
 		{
 			for(Territory tAdja: t.adjacentTerritories)
 			{
 				if(!myOccupiedTerritories.contains(tAdja))
 				{
-					int scorePotentiel = (int) (t.getUnits()- Math.pow(tAdja.getUnits(),1+((nbJoueurs-2)/2)));
+					//cette variable permet de prioritiser légèrement l'australie et l'amérique du sud face aux autres continents.
+					int variableInfluence = 0;
+					if(tAdja.continent == Map.AUSTRALIA)
+						variableInfluence +=5;
+					if(tAdja.continent == Map.SOUTH_AMERICA)
+						variableInfluence +=5;
+					//le scorepotentiel agit comme heuristique
+					int scorePotentiel = (int) (t.getUnits()- Math.pow(tAdja.getUnits(),1+((nbJoueurs-2)/2)))/*+variableInfluence*/;
 					if(scorePotentiel > proieScore && t.getUnits()>2)
 					{
+						//proieScore agit comme heuristique maximale
 						proieScore = scorePotentiel;
+						//territoire cible
 						territoireAttaquer = tAdja;
+						//territoire source
 						territoireAttaquant = t;
 					}
 				}
 			}
 		}
-		if((proieScore >3 || aPrisUnPays == false) && territoireAttaquant.getUnits()>1)
+		
+		//Si l'AI évalue pouvoir gagner la partie (son nombre total d'units > le reste de la carte)
+		boolean jePeuxGagnerLaGame = false;
+		int monScoretotal=0, leurScoretotal=0;
+		for(Territory t : public_allTerritories)
+		{
+			if(myOccupiedTerritories.contains(t))
+				monScoretotal += t.getUnits();
+			else
+				leurScoretotal += t.getUnits();	
+		}
+		if(monScoretotal > leurScoretotal)
+			jePeuxGagnerLaGame = true;
+		
+		//|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+		//|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+		//|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+		//|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+		//|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+		//|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+		int agressivite = 3;
+		boolean agressivitePriseEnCompte = true;
+		//|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+		//|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+		//|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+		//|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+		//|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+		//|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+		
+		if(agressivitePriseEnCompte==false && nombreTours >1000)
+			agressivitePriseEnCompte = true;
+		
+		if(agressivitePriseEnCompte)
+		{}
+		else
+		{
+			agressivite = 100000;
+		}
+		
+		//Conditions d'attaque.
+		if((proieScore > agressivite || nbJoueursRestants()==2 || aPrisUnPays == false || jePeuxGagnerLaGame == true) && territoireAttaquant.getUnits()>1)
 		{
 			this.willAttack = true;
 		}
 		else
 			this.willAttack = false;
 	}
-
+	
 	// Decides which territory to attack from and what territory to attack.  MUST be adjacent :)
 	public void chooseAttackerAndTarget() 
 	{
@@ -217,14 +304,14 @@ public class PoreuxAI extends Player {
 	}
 	
 	// TO IMPLEMENT (AI) : called when finishing a combat round
-	public void postCombatUpdateModel(int myLostUntis, int enemyLostUnits) {
+	public void postCombatUpdateModel(int myLostUntis, int enemyLostUnits) 
+	{
 		
 	}
 
 	// TO IMPLEMENT (AI) : called when our player wins a new territory (which was the targeted territory)
 	public void didGainNewTerritory(Territory conqueredTerritory) {
-		// Add all units from the attacking territory to the new we just conquered
-		// (MUST leave at least one on the territory we attacked with)
+		// Toutes les unités se déplacent de l'attaquant au pays conquis
 		aPrisUnPays = true;
 		conqueredTerritory.setUnits(this.attacker.getUnits() -1);
 		this.attacker.setUnits(1);
@@ -233,7 +320,9 @@ public class PoreuxAI extends Player {
 	// Set [this.moveOrigin] , [this.moveDestination] , [this.moveUnits]
 	// if you want to move units from one territory to another (only once per turn)
 	@Override
-	public void chooseMovementTerritoriesAndUnits() {
+	public void chooseMovementTerritoriesAndUnits() 
+	{
+		nombreTours+=1;
 		
 		aPrisUnPays = false;
 		int popMax = 0;
