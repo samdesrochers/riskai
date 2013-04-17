@@ -9,7 +9,7 @@ public class Main {
 
 		HashMap<Integer, String> winners = new HashMap<Integer, String>();
 		
-		for(int i = 0; i < 7; i++){
+		for(int i = 0; i < 100; i++){
 	        RiskGame game = new RiskGame();
 	        game.startGame();
 	        winnersList.add(game.getWinnerName());
@@ -17,7 +17,7 @@ public class Main {
 	        winners.put(game.getWinnerName().hashCode(), game.getWinnerName());
 		}
 		
-		System.out.println("------------- 7 Games results -------------");
+		System.out.println("------------- 10 Games results -------------");
 		
 		for(String name : winners.values()){     
 			System.out.print(name + "\t : ");

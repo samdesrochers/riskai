@@ -35,11 +35,12 @@ import javax.swing.JPanel;
  *  
  * Contributor : Maxim Essipovitch
  * 
- * Paritcipants :	Samuel Des Rochers
- * 					Maxim Essipovitch
- * 					Hugo Cardin
- * 					Emile Ouelette-Delorme
- * 					Philippe Rosa-Pong
+ * Paritcipants :	Samuel Des Rochers	(SamAI)
+ * 					Maxim Essipovitch	(MaxAI)
+ * 					Hugo Cardin			(HugoAI)
+ * 					Emile Ouelette-Delorme 	(PoreuxAI)
+ * 					Philippe Rosa-Pong		(PlayerGhandi)
+ * 					Othman Tazi
  * 
  **********************************************************/
 
@@ -49,7 +50,7 @@ public class RiskGame extends Canvas{
 	 * Risk game global class
 	 */
 	private static final long serialVersionUID = 1L;
-	private static final long sleepTime = 250L;
+	private static final long sleepTime = 0L;
 	
 	public static final int PHASE_INITIAL 		= 0;
 	public static final int PHASE_TURN_BEGINS 	= 1;
@@ -67,8 +68,8 @@ public class RiskGame extends Canvas{
 	public Player currentPlayer;
 	public int currentPlayerIndex;
 	
-	public static int BONUS_UNITS_COUNTER 	= 5;
-	protected static int STARTING_UNITS 	= 35;
+	public static int BONUS_UNITS_COUNTER 	= 3;
+	protected static int STARTING_UNITS 	= 30;	//20 for 6, 25 for 5, 30 for 4 
 	protected static int MAX_UNITS 			= 300;
 
 	protected boolean isOver = false;
@@ -132,7 +133,7 @@ public class RiskGame extends Canvas{
 
 		players.add(p1);
 		players.add(p2);
-		players.add(p3);
+		//players.add(p3);
 		players.add(p4);
 		players.add(p5);
 	}

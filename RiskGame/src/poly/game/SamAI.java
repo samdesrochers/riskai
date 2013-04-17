@@ -126,7 +126,8 @@ public class SamAI extends Player{
 			Territory turnPick = reinforce_getNextTerritoryToReinforce(territoryPickCounter);
 			if(turnPick != null && this.canAttackOtherTerritory(turnPick)){
 
-				int unitsToPlace = this.remainingUnits - this.remainingUnits/3;
+				//int unitsToPlace = this.remainingUnits - this.remainingUnits/3;
+				int unitsToPlace = this.remainingUnits;
 				turnPick.addUnits(unitsToPlace);
 				this.remainingUnits -= unitsToPlace;
 				nbTerritories --;
@@ -355,23 +356,23 @@ public class SamAI extends Player{
 
 			// Specific territories get better values (Choke points)
 			if(currentTerritory.name.equals(Map.GREENLAND)){
-				value += 25;
+				value += 6;
 			}  else if(currentTerritory.name.equals(Map.INDONESIA)){
 				value += 17;
 			} else if(currentTerritory.name.equals(Map.ALASKA)){
-				value += 16;
+				value += 7;
 			} else if(currentTerritory.name.equals(Map.SIAM)){
-				value += 8;
+				value += 18;
 			}  else if(currentTerritory.name.equals(Map.BRAZIL)){
 				value += 7;
 			} else if(currentTerritory.name.equals(Map.KAMATCHKA)){
 				value += 12;
 			}  else if(currentTerritory.name.equals(Map.CHINA)){
-				value += 5;
+				value += 15;
 			} else if(currentTerritory.name.equals(Map.INDIA)){
-				value += 5;
-			} else if(currentTerritory.name.equals(Map.QUEBEC)){
-				value += 27;
+				value += 15;
+			} else if(currentTerritory.name.equals(Map.E_AUSTRALIA)){
+				value += 35;
 			} 
 
 			value += currentTerritory.adjacentTerritories.size(); // Connectivity to other territories is a +
@@ -604,7 +605,6 @@ public class SamAI extends Player{
 		String continent = t.continent;
 		int highestEnemyUnits = -1;
 		int lowestEnemyUnits = 1000;
-		int lowEnemyUnitsBonus = 0;
 		int easyTargetBonus = 0;
 
 		// Update adjacent territories
@@ -624,10 +624,10 @@ public class SamAI extends Player{
 				
 				// Check if the territory is easily seizable, big + if so
 				int imminentDestruction = (adjacent.getUnits() < 3) ? 20 : 0;
-
+				int vengeance = (adjacent.getOwner().name.equals("Emile")) ? 50 : 0;
 				// Enemy Territory Utility formula!
-				int adjValue = 3*units + cont_value + victoryOddsValue - adjacent.getUnits() + imminentDestruction;
-
+				int adjValue = 3*units + cont_value + victoryOddsValue - adjacent.getUnits() + imminentDestruction + vengeance;
+				
 				adjValue = (adjValue > 500) ? 500 : adjValue;
 				adjValue = (adjValue < 1) ? 1 : adjValue;
 
@@ -654,15 +654,15 @@ public class SamAI extends Player{
 		}
 		
 		// LOW ENEMY = 1
-		easyTargetBonus = (lowestEnemyUnits == 1) ? 25 : 0;
+		easyTargetBonus = (lowestEnemyUnits == 1) ? 20 : 0;
 		
 		// Update current territory
-		int attackCapability = (canAttackOtherTerritory(t)) ? 0 : -10;
+		int attackCapability = (canAttackOtherTerritory(t)) ? 0 : -15;
 		int attackCapacity = (units > 1) ? 0 : -15;
 		int cont_value = getContinentUtilityValueByName(t.continent);
 
 		// Owned Territory Utility formula!
-		newValue = (int) (2*cont_value + attackCapability + attackCapacity + 3*units - highestEnemyUnits + 3*lowEnemyUnitsBonus + easyTargetBonus );
+		newValue = (int) (2*cont_value + attackCapability + attackCapacity + 3*units - highestEnemyUnits + easyTargetBonus );
 
 		return newValue;
 	}
@@ -826,7 +826,7 @@ public class SamAI extends Player{
 				
 				this.moveDestination = bestDestinationCandidate;
 				this.moveOrigin = bestOriginCandidate;
-				this.moveUnits = maxUnits - 1;
+				this.moveUnits = maxUnits - 2;							//FIXME: 2 pourrait etre 1
 				lastMoveDestinationTerritory = this.moveDestination;
 				lastMoveOriginTerritory = this.moveOrigin;
 				
@@ -996,11 +996,11 @@ public class SamAI extends Player{
 	 ******************************************************/
 	
 	// Heuristic values - Continents
-	private int CONTINENT_NA_UTILITY_VALUE = 25;
+	private int CONTINENT_NA_UTILITY_VALUE = 4;
 	private int CONTINENT_SA_UTILITY_VALUE = 5;
 	private int CONTINENT_AF_UTILITY_VALUE = 1;	
-	private int CONTINENT_AS_UTILITY_VALUE = 1;
-	private int CONTINENT_AU_UTILITY_VALUE = 4;
+	private int CONTINENT_AS_UTILITY_VALUE = 8;
+	private int CONTINENT_AU_UTILITY_VALUE = 14;
 	private int CONTINENT_EU_UTILITY_VALUE = 1;
 	
 	// Heuristic values - Owned Continents
@@ -1015,10 +1015,10 @@ public class SamAI extends Player{
 	private final int STATE_DEFENSIVE = 0;
 	private final int STATE_OFFENSIVE = 1;
 	
-	private final int OFFENSE_BONUS_THRESHOLD = 2;
+	private final int OFFENSE_BONUS_THRESHOLD = 4;
 	private final int DEFENSE_PENALTY_THRESHOLD = 1;
-	private final int EARLY_GAME_COUNTER = 13;
-	private final int ATTACK_THRESHOLD = 7;
+	private final int EARLY_GAME_COUNTER = 2;
+	private final int ATTACK_THRESHOLD = 8;
 
 	// Will attack variables
 	private int turnAttackThreshold = ATTACK_THRESHOLD;
