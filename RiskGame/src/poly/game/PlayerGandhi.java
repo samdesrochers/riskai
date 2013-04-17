@@ -10,9 +10,11 @@ public class PlayerGandhi extends Player {
 	private Random ran;
 	static boolean firstPick = true;
 	boolean firstPlacement = true;
+	boolean deplacementTerminer = true;
 	String bestIsolatedStart = null;
 	Territory bestAssaultFrontline = null; // Might use this to determine the best territory to place excessive troops 
 										   // so that they may gain the most territories.
+	Territory lastBestOrigin = null;
 	
 /* STATES AND DECISION MAKING ATTRIBUTES
  * safeCountries notes which countries are internal (not on the frontline) 
@@ -29,12 +31,14 @@ public class PlayerGandhi extends Player {
  * largestTerritory note le plus grand territoire continu que je possede.	
  * */
 	
-	private CopyOnWriteArrayList<Territory> checkedCountries;
+
+	private CopyOnWriteArrayList<Territory> disabledCountries; // Countries who are going to be unable to act this turn.
+	private CopyOnWriteArrayList<Territory> checkedCountries; // Checked countries used for when looking further ahead of the enemy lines.
 	private ArrayList<Territory> safeCountries;
 	private ArrayList<Territory> aloneCountries;
 	private ArrayList<Territory> frontlineCountries;
 	private ArrayList<Territory> internalCountries;
-	//private ArrayList<Territory> largestTerritory;
+	private ArrayList<Territory> largestTerritory;
 	
 	public PlayerGandhi(String name) {
 		super(name);
@@ -138,11 +142,11 @@ public class PlayerGandhi extends Player {
 			alone = true;
 			for(Territory t2 : t.adjacentTerritories)
 			{
-				if(!t2.isOccupied || !(t2.getOwner().name == "Pong"))			// Change frontline si on trouve un pays qui m'appartient pas.
+				if(!t2.isOccupied || !(t2.getOwner().name == "Pong")) // Change frontline si on trouve un pays qui m'appartient pas.
 				{
 					frontline = true;
 				}
-				if(t2.isOccupied && (t2.getOwner().name == "Pong"))			// Change alone si on trouve un pays adjacent qui m'appartient.
+				if(t2.isOccupied && (t2.getOwner().name == "Pong"))	 // Change alone si on trouve un pays adjacent qui m'appartient.
 				{
 					alone = false;
 				}
@@ -273,7 +277,7 @@ public class PlayerGandhi extends Player {
 	
 	public String pickReinforceTerritory() {
 		updateTerritoryListing();
-		if(internalCountries.size()>0)
+		if(internalCountries.size()>0 || myOccupiedTerritories.size()!=aloneCountries.size())
 		{
 			String bestFrontlineChoice = "Nothing";
 			double bestScore = 1000;	// The best score will likely be the lowest value
@@ -374,21 +378,28 @@ public class PlayerGandhi extends Player {
 		/////////////////////////////
 		else // If there are mostly isolated countries for the first reinforcement of the game, then it may be best to pick
 		{    // a single country surround with the least amount of ennemies and thus allowing easy expansion
-			int score;
-			int bestScore = 1000;
+			double score;
+			double enemyCount = 0;
+			double bestScore = 1000;
 			for(Territory t : myOccupiedTerritories)
 			{
 				score = 0;
+				if(t.name == "india")
+				{
+					score -= 3;
+				}
 				for(Territory t2 : t.adjacentTerritories)
 				{
+					enemyCount = 0;
 					if(t2.getOwner().name!="Pong")
 					{
+						enemyCount++;
 						score+=t2.getUnits();
 					}
 				}
-				if(score<bestScore)
+				if(enemyCount != 0 && score/enemyCount<bestScore)
 				{
-					bestScore = score;
+					bestScore = score/enemyCount;
 					bestIsolatedStart = t.name;
 				}
 			}
@@ -448,7 +459,6 @@ public class PlayerGandhi extends Player {
 			updateTerritoryListing();
 			chooseBestAssaultFronline();
 			firstPlacement = false;	// Since I likely won't be moving units in and out of it.
-			System.out.println("Pong chooses to place a unit on India");
 			for(Territory t : myOccupiedTerritories)
 			{
 				if(t.name == "india")
@@ -464,12 +474,12 @@ public class PlayerGandhi extends Player {
 				}
 			}
 		}
-		
 		// Very similar to how the first placement was made, reinforcing territories takes
 		// the amount of units I have into account, my occupied territories and my ennemies on the frontline.
 		if(internalCountries.size()>0)
 		{
 			Territory bestFrontlineChoice = null;
+			Territory bestInternalChoice = null;
 			double bestScore = 1000;	// The best score will likely be the lowest value
 			double score;				// The metric would start at the countries
 			double dangerScore;			// current number of units
@@ -521,22 +531,54 @@ public class PlayerGandhi extends Player {
 			{
 				if(this.remainingUnits > 0)
 				{
-					int rt = ran.nextInt(myOccupiedTerritories.size());
-					int ru = 0;
-					// random nb of units
+					for(Territory t : internalCountries)
+					{
+						score = 0;
+						score += t.getUnits();
+						for(Territory t2 : t.adjacentTerritories)
+						{
+							if(frontlineCountries.contains(t2))
+							{
+								score += 0.3*t2.getUnits();
+							}
+						}
+						if(score < bestScore)
+						{
+							bestScore = score;
+							bestInternalChoice = t;
+						}
+					}
+					if(bestInternalChoice != null) //Ceci ne devrais jamais arriver puisque je ne limite aucunement la des internes
+					{
+						bestInternalChoice.addUnits(1);
+						this.remainingUnits -=1;
+					}
+					else						   //C'est juste au cas ou...
+					{
+						int rt = ran.nextInt(myOccupiedTerritories.size());
+						int ru = 0;
+						// random nb of units
 
-					ru = ran.nextInt(this.remainingUnits) + 1;
-				
+						ru = ran.nextInt(this.remainingUnits) + 1;
+					
 
-					// assign random nb of units on the random territory
-					Territory pick = myOccupiedTerritories.get(rt);
-					pick.addUnits(ru);
-					// Remove the units that were placed from your units pool
-					this.remainingUnits -= ru;
+						// assign random nb of units on the random territory
+						Territory pick = myOccupiedTerritories.get(rt);
+						pick.addUnits(ru);
+						// Remove the units that were placed from your units pool
+						this.remainingUnits -= ru;
+					}
 				}
 			}
 		}
-		
+		else if(aloneCountries.size() == myOccupiedTerritories.size()) 	//Dans le cas ou on a seulement des pays seuls, je vais me concentrer sur le plus probable
+		{															 	// de faire des gains.
+			if(this.remainingUnits > 0)
+			{
+				bestAssaultFrontline.addUnits(1);
+				this.remainingUnits -= 1;
+			}
+		}
 		else
 		{
 			if(this.remainingUnits > 0)
@@ -546,7 +588,6 @@ public class PlayerGandhi extends Player {
 				// random nb of units
 
 				ru = ran.nextInt(this.remainingUnits) + 1;
-			
 
 				// assign random nb of units on the random territory
 				Territory pick = myOccupiedTerritories.get(rt);
@@ -581,47 +622,153 @@ public class PlayerGandhi extends Player {
 		Map.checkIfContinentOwned(Map.ASIA, this.myOccupiedTerritories);
 		Map.checkIfContinentOwned(Map.AUSTRALIA, this.myOccupiedTerritories);
 		Map.checkIfContinentOwned(Map.SOUTH_AMERICA, this.myOccupiedTerritories);
-		
-		if(ran.nextInt(100) > 1){
-			this.willAttack = true;
-		} else {
-			this.willAttack = false;
+		this.willAttack = false;
+		for(Territory t : frontlineCountries) // Je vais faire en sorte qu<il y est différente raison qu'on décide de vouloir attaquer.
+		{										 // De plus, je vais prendre note des pays qui ne peuvent définitivement pas attaquer (ou effectuer un deplacement)
+			if(t.getUnits() > 1)
+			{
+				for(Territory t2 : t.adjacentTerritories)
+				{
+					if(!myOccupiedTerritories.contains(t2))
+					{
+						if(t.getUnits() > 3 && t.getUnits() > t2.getUnits()) // If I have more than enough units and still more then him, I should attack.
+							this.willAttack = true;
+						else if(t.getUnits() > t2.getUnits()) // If the unit count is low but still have more than him, it would be best to attack.
+							this.willAttack = true;
+						else if(t.getUnits() == t2.getUnits()) // Equal would put me at a disadvantage so I randomise my choice.
+						{
+							if(ran.nextInt(3) > 2)
+							{
+								this.willAttack = true;
+							}
+						}
+						else if(t.getUnits() < t2.getUnits() && t.getUnits() > 4) // Here I hesitate to attack the larger force but do so if I have more then 4 units.
+						{
+							if(ran.nextInt(4) > 3)
+							{
+								this.willAttack = true;
+							}
+						}
+					}
+				}
+			}
 		}
+		int count = 0;
+		for(Territory t : myOccupiedTerritories)
+		{
+			count += t.getUnits();
+		}
+		if(count < myOccupiedTerritories.size()*1.4)
+			this.willAttack = false;
 	}
 
 	// Decides which territory to attack from and what territory to attack.  MUST be adjacent :)
-	public void chooseAttackerAndTarget() {
+	public void chooseAttackerAndTarget() {			
 		updateTerritoryListing();
 		firstPlacement = true;
-		int numberTerritoriesChecked = 0;
+		Territory bestTarget = null;
+		int bestTargetsUnits = 400;
 		
-		while(numberTerritoriesChecked < myOccupiedTerritories.size()){
-
-			// try a random territory in what we occupy
-			int rt = ran.nextInt(myOccupiedTerritories.size());
-			Territory attacker = myOccupiedTerritories.get(rt);
-
-			// Check all adjacent territories and try to find an enemy
-			for(int i = 0; i < attacker.adjacentTerritories.size(); i++){
-					Territory t = attacker.adjacentTerritories.get(i);
-				if(t.getOwner().name != attacker.getOwner().name && attacker.getUnits() > 1){
-					this.target = t; // Bug aux pays frontieres en raison du 1 unit
-					this.attacker = attacker;
+	    for(Territory t : frontlineCountries)
+		{
+	    	bestTarget = null;
+			bestTargetsUnits = 400;
+			if(t.getUnits()>1) // On regarde tout notre frontline
+			{								   // pour les pays validé d'attaquer. (Ou plutot non disabled)
+				for(Territory t2 : t.adjacentTerritories)
+				{
+					if(t2.getOwner().name != "Pong")
+					{
+						if(t2.getUnits() < bestTargetsUnits)
+						{
+							bestTargetsUnits = t2.getUnits();
+							bestTarget = t2;
+						}
+					}
+				}
+				if(bestTarget != null)
+				{
+					if(t.getUnits() == 2 && bestTargetsUnits != 1)
+						continue;
+					this.attacker = t;
+					this.target = bestTarget;
 				}
 			}
-			// Go to next territory if not possible for current territory
+		}
+		
+		// Code abandonné
+		/*for(Territory t3 : bestTarget.adjacentTerritories)
+		{
+			numberOfEnemy_t3 = 0;
+			if(frontlineCountries.contains(t3) && t3!=t)
+			{
+				for(Territory t4 : t3.adjacentTerritories)
+				{
+					if(t4.getOwner().name != "Pong")
+						numberOfEnemy_t3 += 1;
+				}
+				if(bestTarget.getUnits() < t3.getUnits() && bestTarget.getUnits() < t.getUnits()) // On doit choisir le meilleur pour cette situation.
+				{																				  // Ici on va prendre celui qui a le moins d'unité si et seulement si
+					if(numberOfEnemy_t != 1)													  // celui avec le plus d'unité n'a pas juste enemy
+						this.attacker = t3;
+				}
+				else if(bestTarget.getUnits() > t3.getUnits() && bestTarget.getUnits() > t.getUnits())
+				{
+					
+				}
+				else if(bestTarget.getUnits() > t3.getUnits() && bestTarget.getUnits() > t.getUnits())
+				{
+					
+				}
+			}
+			
+			while(numberTerritoriesChecked < myOccupiedTerritories.size())
+		{
+
+			bestTargetsUnits = 400;
+			
+			// On essai les frontlines un a un.
+			Territory attacker = (myOccupiedTerritories.get(numberTerritoriesChecked));
+			// Check all adjacent territories and try to find an enemy and then the best choice.
+			for(Territory t : attacker.adjacentTerritories)
+			{
+				if(t.getOwner().name != attacker.getOwner().name && attacker.getUnits() > 1)
+				{
+					if(t.getUnits() < bestTargetsUnits)
+					{
+						bestTargetsUnits = t.getUnits();
+						bestTarget = t;
+					}
+				}
+			}
+			if(bestTarget != null)
+			{
+				this.target = bestTarget;
+				this.attacker = attacker;
+			}
 			numberTerritoriesChecked ++;
 		}
+		}*/
+		
 	}
 
 	// Decides how many units to send for this round (MAX is 3, minimum is 1, 0 cancels the attack)
 	public void chooseAttackingUnits() {
 		// Attack with full capacity without leaving the territory empty
-		if(this.attacker.getUnits() >= 6 ){
+		/*if(this.attacker.getUnits() >= 6 ){
 			this.attackingUnits = 3;
 		} else if(this.attacker.getUnits() >= 5 ){
 			this.attackingUnits = 2;
 		} else if(this.attacker.getUnits() >= 3 ){
+			this.attackingUnits = 1;
+		} else {
+			this.attackingUnits = 0; // Attack cancelled
+		}*/
+		if(this.attacker.getUnits() >= 6){
+			this.attackingUnits = 3;
+		} else if(this.attacker.getUnits() >= 4 ){
+			this.attackingUnits = 2;
+		} else if(this.attacker.getUnits() >= 3 || this.target.getUnits()==1 ){
 			this.attackingUnits = 1;
 		} else {
 			this.attackingUnits = 0; // Attack cancelled
@@ -645,13 +792,109 @@ public class PlayerGandhi extends Player {
 	// if you want to move units from one territory to another (only once per turn)
 	@Override
 	public void chooseMovementTerritoriesAndUnits() {
-		Territory tempOrigine;
-		do
+		Territory bestOrigin = null;
+		Territory bestDestination = null;
+		if(!myOccupiedTerritories.contains(lastBestOrigin)) // Au cas ou on a perdu notre terrain :<
+			deplacementTerminer = true;
+		
+		if(deplacementTerminer)
 		{
-			tempOrigine = this.myOccupiedTerritories.get(ran.nextInt(myOccupiedTerritories.size()));
-		}while(tempOrigine.name=="india");
-		this.moveOrigin = tempOrigine;
-		this.moveDestination = this.moveOrigin.adjacentTerritories.get(ran.nextInt(moveOrigin.adjacentTerritories.size()));
-		this.moveUnits = this.moveDestination.getUnits() - 1;
+			if(internalCountries.size()>0 && safeCountries.size() == 0) // Deplacement simple quand on il n'y a pas de pays "safe"
+			{
+				int score = 0;
+				for(Territory t : internalCountries)
+				{
+					if(t.getUnits()>2 && t.getUnits()>score)
+					{
+						score = t.getUnits();
+						bestOrigin = t;
+					}
+				}
+				this.moveOrigin = bestOrigin;
+				score = 1000;
+				if(bestOrigin != null){
+				for(Territory t2 : bestOrigin.adjacentTerritories)
+				{
+					if(t2.getUnits() < score && t2.getOwner().name == "Pong")
+					{
+						score = t2.getUnits();
+						this.moveDestination = t2;
+					}
+				}
+				this.moveUnits = bestOrigin.getUnits() - 1;
+				}
+			}
+			else if(internalCountries.size() == 0) // Deplacement d'uniformisation dans le cas ou on a pas de pays interne.
+			{
+				int score = 0;
+				for(Territory t : frontlineCountries)
+				{
+					if(t.getUnits()>4 && t.getUnits()>score && !aloneCountries.contains(t))
+					{
+						score = t.getUnits();
+						bestOrigin = t;
+					}
+				}
+				this.moveOrigin = bestOrigin;
+				score = 1000;
+				if(bestOrigin != null){
+				for(Territory t2 : bestOrigin.adjacentTerritories)
+				{
+					if(t2.getUnits() < score && t2.getOwner().name == "Pong")
+					{
+						score = t2.getUnits();
+						this.moveDestination = t2;
+					}
+				}
+				this.moveUnits = bestOrigin.getUnits() - this.moveDestination.getUnits() - 1;
+				}
+			}
+			else
+			{
+				deplacementTerminer = false;
+				int score = 0;
+				for(Territory t : safeCountries)
+				{
+					if(t.getUnits()>2 && t.getUnits()>score)
+					{
+						score = t.getUnits();
+						bestOrigin = t;
+					}
+				}
+				score = 1000;
+				this.moveOrigin = bestOrigin;
+				if(bestOrigin != null){
+				for(Territory t2 : bestOrigin.adjacentTerritories)
+				{
+					if(t2.getUnits() < score && t2.getOwner().name == "Pong")
+					{
+						score = t2.getUnits();
+						this.moveDestination = t2;
+						lastBestOrigin = t2;
+					}
+				}
+				this.moveUnits = bestOrigin.getUnits() - 1;
+				}
+			}
+		}
+		else
+		{	
+			for(Territory t : lastBestOrigin.adjacentTerritories)
+			{
+				if(frontlineCountries.contains(t))
+				{
+					bestOrigin = t;
+					deplacementTerminer = true;
+				}
+				else if(!safeCountries.contains(t) && !frontlineCountries.contains(bestOrigin))
+					bestOrigin = t;
+				else if(bestOrigin == null)
+					bestOrigin = t;
+			}
+			this.moveOrigin = lastBestOrigin;
+			this.moveDestination = bestOrigin; // Best origin devrait peut-etre best destination.. erreur de ma part
+			lastBestOrigin = bestOrigin;
+			this.moveUnits = this.moveOrigin.getUnits() - 2;
+		}
 	}
 }
