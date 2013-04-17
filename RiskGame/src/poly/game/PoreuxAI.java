@@ -1,15 +1,14 @@
 package poly.game;
 
 import java.util.ArrayList;
-import java.util.Random;
 import java.util.Vector;
 
 public class PoreuxAI extends Player {
 
-	private Random ran;
+	//private Random ran;
 	public PoreuxAI(String name) {
 		super(name);
-		ran = new Random();
+		//ran = new Random();
 	}
 
 	/*******************************************************

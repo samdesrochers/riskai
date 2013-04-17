@@ -49,7 +49,7 @@ public class RiskGame extends Canvas{
 	 * Risk game global class
 	 */
 	private static final long serialVersionUID = 1L;
-	private static final long sleepTime = 1L;
+	private static final long sleepTime = 250L;
 	
 	public static final int PHASE_INITIAL 		= 0;
 	public static final int PHASE_TURN_BEGINS 	= 1;
@@ -118,7 +118,7 @@ public class RiskGame extends Canvas{
 		Player p1 	= new SamAI("Sam");
 		p1.color = Color.white;
 		
-		Player p2 = new RandomAI("Emile");
+		Player p2 = new PoreuxAI("Emile");
 		p2.color = Color.blue;
 		
 		Player p3 = new PlayerGandhi("Pong");
@@ -130,8 +130,8 @@ public class RiskGame extends Canvas{
 		Player p5 = new HugoAI("Hugo");
 		p5.color = Color.black;
 
-		//players.add(p2);
 		players.add(p1);
+		players.add(p2);
 		players.add(p3);
 		players.add(p4);
 		players.add(p5);

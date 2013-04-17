@@ -9,7 +9,7 @@ public class Main {
 
 		HashMap<Integer, String> winners = new HashMap<Integer, String>();
 		
-		for(int i = 0; i < 10; i++){
+		for(int i = 0; i < 7; i++){
 	        RiskGame game = new RiskGame();
 	        game.startGame();
 	        winnersList.add(game.getWinnerName());
