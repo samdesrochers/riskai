@@ -34,7 +34,7 @@ public class PlayerGandhi extends Player {
 	private ArrayList<Territory> aloneCountries;
 	private ArrayList<Territory> frontlineCountries;
 	private ArrayList<Territory> internalCountries;
-	private ArrayList<Territory> largestTerritory;
+	//private ArrayList<Territory> largestTerritory;
 	
 	public PlayerGandhi(String name) {
 		super(name);
