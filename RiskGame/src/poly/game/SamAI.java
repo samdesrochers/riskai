@@ -283,6 +283,10 @@ public class SamAI extends Player{
 			turnAttackThreshold ++;
 		}
 
+		if(this.target.getOwner().myOccupiedTerritories.size() < 3){
+			turnAttackThreshold ++;
+		}
+		
 		allTerritoriesValues.put(this.attacker.name, lastAttackerValue + differential);
 		allTerritoriesValues.put(this.target.name, lastTargetValue + differential);
 
@@ -306,7 +310,9 @@ public class SamAI extends Player{
 		
 		turnAttackThreshold = (nbTurnsPlayed < EARLY_GAME_COUNTER) ? turnAttackThreshold - 1 : turnAttackThreshold;
 
-		if(this.state == STATE_DEFENSIVE) {
+		if(this.state == STATE_DEFENSIVE && nbTurnsPlayed < EARLY_GAME_COUNTER) {
+			turnAttackThreshold -= 3;
+		} else if(this.state == STATE_DEFENSIVE) {
 			turnAttackThreshold --;
 		} 
 	}
@@ -483,7 +489,7 @@ public class SamAI extends Player{
 				String name = currentTerritory.name;
 				int newValue = reinforce_updateMyTerritoryValue(currentTerritory);
 
-				// If the value goes over 500, limit the value
+				// If the value goes over 250, limit the value
 				newValue = (newValue > 250) ? 250 : newValue;
 				newValue = (newValue < 1) ? 1 : newValue;
 				allTerritoriesValues.put(name, newValue);
@@ -624,9 +630,9 @@ public class SamAI extends Player{
 				
 				// Check if the territory is easily seizable, big + if so
 				int imminentDestruction = (adjacent.getUnits() < 3) ? 20 : 0;
-				int vengeance = (adjacent.getOwner().name.equals("Emile")) ? 50 : 0;
+				//int vengeance = (adjacent.getOwner().name.equals("Emile")) ? 300 : 0;
 				// Enemy Territory Utility formula!
-				int adjValue = 3*units + cont_value + victoryOddsValue - adjacent.getUnits() + imminentDestruction + vengeance;
+				int adjValue = 3*units + cont_value + victoryOddsValue - adjacent.getUnits() + imminentDestruction ;
 				
 				adjValue = (adjValue > 500) ? 500 : adjValue;
 				adjValue = (adjValue < 1) ? 1 : adjValue;
@@ -1017,8 +1023,8 @@ public class SamAI extends Player{
 	
 	private final int OFFENSE_BONUS_THRESHOLD = 4;
 	private final int DEFENSE_PENALTY_THRESHOLD = 1;
-	private final int EARLY_GAME_COUNTER = 2;
-	private final int ATTACK_THRESHOLD = 8;
+	private final int EARLY_GAME_COUNTER = 7;
+	private final int ATTACK_THRESHOLD = 6;
 
 	// Will attack variables
 	private int turnAttackThreshold = ATTACK_THRESHOLD;

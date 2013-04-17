@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 public class MaxAI extends Player{
 
-	
+
 	private ArrayList<Territory> owned;
 	private ArrayList<Continent> currentContinent;
 	private int minValue = 20;
@@ -21,7 +21,7 @@ public class MaxAI extends Player{
 	public static int continentToAttackIndex;
 	public MaxAI(String name) {
 		super(name);
-		
+
 		owned = new ArrayList<Territory>();
 		currentContinent = new ArrayList<Continent>();
 		currentContinent.add(new Continent(SOUTH_AMERICA));
@@ -31,7 +31,7 @@ public class MaxAI extends Player{
 		currentContinent.add(new Continent(EUROPE));
 		currentContinent.add(new Continent(ASIA));
 		continentToAttackIndex = -1;
-		
+
 	}
 
 	//Get the value of this territory
@@ -40,7 +40,7 @@ public class MaxAI extends Player{
 		int numberOfAdjacent = territory.adjacentTerritories.size();
 		//Add the min value
 		int territoryValue = numberOfAdjacent + minValue; 
-		
+
 		//If less than 3 neighbours, its an advantage
 		if (numberOfAdjacent < 3) {
 			territoryValue -= 2;
@@ -58,7 +58,7 @@ public class MaxAI extends Player{
 				territoryValue+=(t.getUnits()/2 + t.getUnits()%2);
 			}
 		}
-		
+
 		//We check if it helps our offense
 		//attack
 		for (int k = 0; k < numberOfAdjacent; k++) {
@@ -70,14 +70,14 @@ public class MaxAI extends Player{
 				territoryValue--;
 			}
 		}
-		
+
 		neighbors = neighbors/2 + neighbors%2;
 		territoryValue += neighborBonus/4 + neighborBonus%2;
-		
+
 		/*if (neighbors > 1) {
 			territoryValue -= Math.pow(neighbors, 2);
 			territoryValue = Math.max(1, territoryValue);
-			
+
 		}*/
 		//Check number of territories owned on the continent
 		int numberOfEmptyTerritory = 0;
@@ -101,13 +101,13 @@ public class MaxAI extends Player{
 		territoryValue += numberOfEnnemiTerritory;
 		territoryValue += numberOfEmptyTerritory;
 		territoryValue -= numberOfOwnedTerritory;
-		
+
 		//Get continent frontier first
 		if(territory.isContinentFrontier && numberOfOwnedTerritory > 0)
 			territoryValue -= 5;
 		else if(territory.isContinentFrontier)
 			territoryValue -= 2;
-		
+
 		//Depending on continent bonus and continent worth progression bonus
 		if((continent.name == NORTH_AMERICA)){
 			territoryValue -= 5; //Bonus
@@ -128,12 +128,12 @@ public class MaxAI extends Player{
 			territoryValue -= 7; //Bonus
 			territoryValue += 7; //Not usefull continent since too big
 		}
-		
+
 		return territoryValue;
 	}
-	
-	
-	
+
+
+
 	/*******************************************************
 	 * 
 	 *  DEPLOYEMENT PHASE METHODS
@@ -165,15 +165,15 @@ public class MaxAI extends Player{
 			}
 			c.territories.clear();
 		}
-		
+
 		owned.add(bestTerritory);
 		return bestTerritory.name;
 	}
-		
-		
-	
 
-	
+
+
+
+
 	/*******************************************************
 	 * 
 	 *  REINFORCEMENT PHASE METHODS (Pre - Combat)
@@ -183,7 +183,7 @@ public class MaxAI extends Player{
 	 *  your territories and adding the new units (addUnits)
 	 * 
 	 ******************************************************/
-	
+
 	@Override
 	// Make sure [this.remainingUnits] reaches 0 here by assigning
 	// all of your received units to a territory you own in [this.myOccupiedTerritories]
@@ -199,34 +199,40 @@ public class MaxAI extends Player{
 			chosen.addUnits(1);
 			remainingUnits -= 1;
 		}
-		
+
 	}
 
 	@Override
 	public ArrayList<Card> tradeCards() {
-		if(this.cards.size() >= 3){
-			ArrayList<Card> inf_cards = new ArrayList<Card>();
-			ArrayList<Card> cav_cards = new ArrayList<Card>();
-			ArrayList<Card> art_cards = new ArrayList<Card>();
-			
-			for(int i = 0; i < this.cards.size(); i++){
-				Card card = this.cards.get(i);
-				if(card.type == Card.TYPE_INFANTRY){
-					inf_cards.add(card);
-				} else if(card.type == Card.TYPE_CAVALRY){
-					cav_cards.add(card);
-				} else if(card.type == Card.TYPE_ARTILERY){
-					art_cards.add(card);
-				} 
-			}
-			if(inf_cards.size() == 3){
-				return inf_cards;
-			} else if(cav_cards.size() == 3){
-				return cav_cards;
-			} else if(art_cards.size() == 3){
-				return art_cards;
+		ArrayList<Card> inf_cards = new ArrayList<Card>();
+		ArrayList<Card> cav_cards = new ArrayList<Card>();
+		ArrayList<Card> art_cards = new ArrayList<Card>();
+		ArrayList<Card> tri_cards = new ArrayList<Card>();
+
+		for(int i = 0; i < this.cards.size(); i++){
+			Card card = this.cards.get(i);
+			if(card.type == Card.TYPE_INFANTRY){
+				inf_cards.add(card);
+			} else if(card.type == Card.TYPE_CAVALRY){
+				cav_cards.add(card);
+			} else if(card.type == Card.TYPE_ARTILERY){
+				art_cards.add(card);
 			} 
 		}
+
+		if(art_cards.size() > 0 && cav_cards.size() > 0 && inf_cards.size() > 0){
+			tri_cards.add(art_cards.get(0));
+			tri_cards.add(cav_cards.get(0));
+			tri_cards.add(inf_cards.get(0));
+			return tri_cards;
+		} else if(art_cards.size() == 3){
+			return art_cards;
+		} else if(cav_cards.size() == 3){
+			return cav_cards;
+		} else if(inf_cards.size() == 3){
+			return inf_cards;
+		} 
+
 		return null;
 	}
 
@@ -242,11 +248,11 @@ public class MaxAI extends Player{
 	 *  * All (I hope so) values will be checked for integrity ( != null or 0 )
 	 * 
 	 ******************************************************/
-	
+
 	// Decides to attack or not here
 	public void updateModel() {
 		super.updateModel();
-		
+
 		Map.checkIfContinentOwned(Map.AFRICA, this.myOccupiedTerritories);
 		Map.checkIfContinentOwned(Map.NORTH_AMERICA, this.myOccupiedTerritories);
 		Map.checkIfContinentOwned(Map.EUROPE, this.myOccupiedTerritories);
@@ -265,16 +271,16 @@ public class MaxAI extends Player{
 		EraseContinent();
 		FillContinent();
 	}
-	
+
 	// Decides which territory to attack from and what territory to attack.  MUST be adjacent :)
 	public void chooseAttackerAndTarget() {
 		//Find target to attack and fin from where
 		this.target = FindBestTerritoryToAttack();
 		this.attacker = FindTerritoryToAttackFrom(target);
-		
+
 	}
 
-	
+
 
 	// Decides how many units to send for this round (MAX is 3, minimum is 1, 0 cancels the attack)
 	public void chooseAttackingUnits() {
@@ -289,10 +295,10 @@ public class MaxAI extends Player{
 			this.attackingUnits = 0; // Attack cancelled
 		}
 	}
-	
+
 	// TO IMPLEMENT (AI) : called when finishing a combat round
 	public void postCombatUpdateModel(int myLostUntis, int enemyLostUnits) {
-		
+
 	}
 
 	// TO IMPLEMENT (AI) : called when our player wins a new territory (which was the targeted territory)
@@ -322,8 +328,8 @@ public class MaxAI extends Player{
 		}
 		wonCard = true;
 	}
-	
-		
+
+
 
 	/*******************************************************
 	 * 
@@ -381,7 +387,7 @@ public class MaxAI extends Player{
 				}
 			}
 			this.moveUnits = this.moveOrigin.getUnits()-1;
-			
+
 		}
 	}
 	/*******************************************************
@@ -417,18 +423,18 @@ public class MaxAI extends Player{
 			{
 				currentContinent.get(5).territories.add(t);
 			}
-						
+
 		}
-		
+
 	}
 	//Erase all territories
 	private void EraseContinent() {
 		for(Continent c : currentContinent)
 		{
 			c.territories.clear();
-						
+
 		}
-		
+
 	}
 
 	// Choose a number of units to place on a territory during
@@ -438,7 +444,7 @@ public class MaxAI extends Player{
 	public int chooseNbOfUnits(int remainingThisTurn) {
 		return 1;
 	}
-	
+
 	// Choose a territory to reinforce with 1 to 3 units
 	// Returns the territory to reinforce
 	@Override
@@ -461,7 +467,7 @@ public class MaxAI extends Player{
 			Territory chosen = null;
 			//Get current state
 			CurrentState = ChooseState(currentContinent);
-					
+
 			//If defense we get the weakest territory from the wesakest continent
 			if(CurrentState.equals(State.DefenseContinent))
 			{
@@ -504,10 +510,10 @@ public class MaxAI extends Player{
 		{
 			System.out.println("Exception occured in Choosing the Territory " + e.getMessage());
 			return null;
-			
+
 		}
 	}
-	
+
 	//Get closest territory to an ennemi
 	private Territory FindNearestTerritoryToEnnemi() {
 		for(Continent c: currentContinent)
@@ -560,7 +566,7 @@ public class MaxAI extends Player{
 			return State.PriseContinent;
 		}
 		//if we want to end game and we are getting a lot of reinforcement, we put them near ennemis
-		else if(remainingUnits > 30)
+		else if(remainingUnits > this.myOccupiedTerritories.size())
 		{
 			return State.AttaqueContinent;
 		}
@@ -654,11 +660,11 @@ public class MaxAI extends Player{
 			{
 				return true;
 			}
-				
+
 		}
 		return false;
 	}
-	
+
 	//Find if ennemi is near our territory inside our continent
 	private boolean HasAdjacentEnnemiInContinent(Territory t) {
 		for(Territory adj: t.adjacentTerritories)
@@ -667,11 +673,11 @@ public class MaxAI extends Player{
 			{
 				return true;
 			}
-				
+
 		}
 		return false;
 	}
-	
+
 	//Find if ennemi is near our territory outside our continent and that we can attack
 	private boolean HasAdjacentEnnemiInRange(Territory t) {
 		for(Territory adj: t.adjacentTerritories)
@@ -689,12 +695,12 @@ public class MaxAI extends Player{
 				}
 				return true;
 			}
-				
+
 		}
 		return false;
 	}
-	
-	
+
+
 
 	//Get continents near our continent
 	private ArrayList<String> GetContinentNeigbours(Continent continent)
@@ -711,7 +717,7 @@ public class MaxAI extends Player{
 			}
 		}
 		return Continents;
-		
+
 	}
 	//Get next continent to occupy, by looking our neighbours
 	//If some are here more than once, means thhye could shield our continents from others so we grab them
@@ -738,7 +744,7 @@ public class MaxAI extends Player{
 				return continentToAttackIndex;
 			}
 		}
-		
+
 		//Add all neighbours to a list
 		ArrayList<String> possibleContinentName = new ArrayList<String>();
 		if(ownedContinent.size() == 0)
@@ -758,12 +764,12 @@ public class MaxAI extends Player{
 			int countContinent = 0;
 			for(String name : possibleContinentName)
 			{
-				
+
 				if(name == possibleContinentName.get(i))
 				{
 					countContinent += 1;
 				}
-							
+
 			}
 			if(countContinent > countContinentMax && IsNotOwned(possibleContinentName.get(i)))
 			{
@@ -785,20 +791,20 @@ public class MaxAI extends Player{
 			}
 			i++;
 		}
-		
+
 		return indexOccupied;
 	}
-	
+
 	//Check if continent is owned by name
 	private boolean IsNotOwned(String name) {
-		
+
 		for(Continent c: GetContinentOwned(currentContinent))
 		{
 			if(c.name == name)
 			{
 				return false;
 			}	
-			
+
 		}
 		return true;
 	}
@@ -823,7 +829,7 @@ public class MaxAI extends Player{
 				occupied.add(currentContinent.get(i));
 			}
 			i++;
-				
+
 		}
 		return occupied;
 	}
@@ -850,7 +856,7 @@ public class MaxAI extends Player{
 				indexOccupied = i;
 			}
 			i++;
-				
+
 		}
 		return indexOccupied;
 	}
@@ -874,7 +880,7 @@ public class MaxAI extends Player{
 							toAttack = adj;
 							maxUnitDiff = owned.getUnits() - adj.getUnits();
 						}
-						
+
 					}
 				}
 			}
@@ -893,14 +899,13 @@ public class MaxAI extends Player{
 								toAttack = adj;
 								maxUnitDiff = owned.getUnits() - adj.getUnits();
 							}
-							
+
 						}
 					}
 				}
 			}
 		}
-		else 
-		{
+
 			//Defense de son continent 
 			//If no card was won we try to find a place to attack to get a CARD
 			if(!wonCard)
@@ -918,13 +923,35 @@ public class MaxAI extends Player{
 								{
 									toAttack = adj;
 								}
-										
+
 							}
 						}
 					}
 				}
 			}
-		}
+			if(toAttack == null){
+				if(!wonCard)
+				{
+					ArrayList<Continent> owned = GetContinentOwned(currentContinent);
+					for(Continent c: owned)
+					{
+						for(Territory t: c.territories)
+						{
+							if(HasAdjacentEnnemi(t))
+							{
+								for(Territory adj: t.adjacentTerritories)
+								{
+									if(adj.getOwner().name != name && (adj.getUnits() < t.getUnits()))
+									{
+										toAttack = adj;
+									}
+
+								}
+							}
+						}
+					}
+				}
+			}
 		//If no attack was found, we do a sabotage, it means we try to steal a continent from an opponent just so he ghets less reinforcement
 		if(toAttack == null)
 		{
@@ -945,11 +972,11 @@ public class MaxAI extends Player{
 					}
 				}
 			}
-			
-			
+
+
 		}
 		return toAttack;
-		
+
 	}
 	//Get continent from name
 	private Continent GetContinentFromName(String name) {
@@ -989,11 +1016,11 @@ public class MaxAI extends Player{
 		{
 			return false;
 		}
-		
+
 		return true;
 	}
 
-	
+
 	//Get all units from a continent by ennemi
 	private int GetTotalUnitsFromContinent(Continent continent) {
 		int ennemiUnits = 0;

@@ -9,6 +9,8 @@ public class  Card {
 	public static int TYPE_CAVALRY 	= 1;
 	public static int TYPE_ARTILERY = 2;
 
+	public static int bonus_count = 2;
+	
 	public int type;
 	
 	public Card(){
@@ -18,7 +20,7 @@ public class  Card {
 	
 	public static boolean addCard(ArrayList<Card> cards, Card card){
 		
-		if(cards.size() -1 < 5){
+		if(cards.size() < 5){
 			cards.add(card);
 			return true;
 		} else if (cards.size() >= 5){
@@ -31,27 +33,23 @@ public class  Card {
 	
 	// Trades tree cards for a specific amount of untis
 	public static int tradeCards(Player p, Card c1, Card c2, Card c3){
-		int bonusUnits = 0;
 
 		if(c1.type == c2.type && c1.type == c3.type){
-			if(c1.type == TYPE_INFANTRY){
-				bonusUnits = 4;
-			} else if(c1.type == TYPE_CAVALRY){
-				bonusUnits = 6;
-			} else if(c1.type == TYPE_ARTILERY){
-				bonusUnits = 8;
-			}
+			bonus_count += (bonus_count < 12) ? 2 : 5;
 			p.cards.remove(c3);
 			p.cards.remove(c2);
 			p.cards.remove(c1);
 
 		} else if(c1.type != c2.type && c1.type != c3.type && c2.type != c3.type ){
-			bonusUnits = 10;
+			bonus_count += (bonus_count < 12) ? 2 : 5;
 			p.cards.remove(c3);
 			p.cards.remove(c2);
 			p.cards.remove(c1);
 		} 
 		
-		return bonusUnits;
+		bonus_count = (bonus_count > 35) ? 35 : bonus_count;
+	
+		System.out.println("Nb units given out : " + bonus_count);
+		return bonus_count;
 	}
 }

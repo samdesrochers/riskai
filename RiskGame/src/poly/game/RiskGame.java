@@ -50,8 +50,8 @@ public class RiskGame extends Canvas{
 	 * Risk game global class
 	 */
 	private static final long serialVersionUID = 1L;
-	private static final long sleepTime = 0L;
-	
+	private static final long sleepTime = 50L;
+
 	public static final int PHASE_INITIAL 		= 0;
 	public static final int PHASE_TURN_BEGINS 	= 1;
 	public static final int PHASE_REINFORCE		= 2;
@@ -61,29 +61,29 @@ public class RiskGame extends Canvas{
 
 	public ArrayList<Player> 	players;
 	public ArrayList<Territory> territories;
-	
+
 	public Territory	attacker;
 	public Territory	defender;
 
 	public Player currentPlayer;
 	public int currentPlayerIndex;
-	
+
 	public static int BONUS_UNITS_COUNTER 	= 3;
-	protected static int STARTING_UNITS 	= 30;	//20 for 6, 25 for 5, 30 for 4 
+	protected static int STARTING_UNITS 	= 25;	//20 for 6, 25 for 5, 30 for 4 
 	protected static int MAX_UNITS 			= 300;
 
 	protected boolean isOver = false;
 	public String winner = "";
-	
+
 	public static JFrame frame;
 	public JButton distributionButton;
 	public JButton roundButton;
 
-    public Image riskMap;
-    public Font font;
-    
-    public boolean isDistributionReady = false;
- 
+	public Image riskMap;
+	public Font font;
+
+	public boolean isDistributionReady = false;
+
 	public RiskGame(){
 		this.setupUI();
 	}
@@ -94,7 +94,7 @@ public class RiskGame extends Canvas{
 		// Initial phase
 		initPlayers();
 		initTerritories();
-		
+
 		ditributeTerritories();
 		placeRemainingUnits();
 		frame.repaint();
@@ -118,24 +118,28 @@ public class RiskGame extends Canvas{
 
 		Player p1 	= new SamAI("Sam");
 		p1.color = Color.white;
-		
+
 		Player p2 = new PoreuxAI("Emile");
 		p2.color = Color.blue;
-		
+
 		Player p3 = new PlayerGandhi("Pong");
 		p3.color = Color.green;
-		
+
 		Player p4 = new MaxAI("Maxim");
 		p4.color = Color.red;
-		
+
 		Player p5 = new HugoAI("Hugo");
 		p5.color = Color.black;
 
+		Player p6 = new RandomAI("RANDOM");
+		p6.color = Color.cyan;
+
 		players.add(p1);
 		players.add(p2);
-		//players.add(p3);
-		players.add(p4);
 		players.add(p5);
+		players.add(p4);
+		players.add(p3);
+		//players.add(p6);
 	}
 
 	// Players each pick a territory one after the other
@@ -229,13 +233,13 @@ public class RiskGame extends Canvas{
 		currentPlayer = players.get(currentPlayerIndex);
 
 		while(!isOver){
-			
+
 			// Check if game is over
 			executeGameOverCheck();
-			
+
 			// Execute the turn for currentPlayer
 			executeTurn();
-			
+
 			// Check if game is over
 			executeGameOverCheck();
 
@@ -247,7 +251,7 @@ public class RiskGame extends Canvas{
 			frame.repaint();
 		}
 		System.out.println("Game Over!");
-		
+
 	}
 
 	private void executeTurn(){
@@ -256,25 +260,25 @@ public class RiskGame extends Canvas{
 
 		// Make sure the player still has a territory (isn't gameover)
 		if(currentPlayer.myOccupiedTerritories.size() > 0){
-			
+
 			// Acquire and Place new reinforcements
 			executeReinforcementsPhase();
-			
+
 			// Attack other territories
 			executeAttackPhase();
 
 			// draw frame
 			frame.repaint();
-			
+
 			try {
 				Thread.sleep(sleepTime);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-	
+
 			// Hand out a card if necessary
 			executePostAttackPhase(currentNbTerritories);		
-			
+
 			// Move units from a territory to another
 			executeMovementPhase();
 		}
@@ -282,10 +286,12 @@ public class RiskGame extends Canvas{
 
 	private void executeReinforcementsPhase(){
 		int newReinforcements = calculateNbReinforcements();
-				
+
 		currentPlayer.remainingUnits = newReinforcements;
 		System.out.println("-------- Reinforcement --------");
 		System.out.println(currentPlayer.name + " Recieved : "+newReinforcements + " new units");
+		System.out.println("Number of cards owned : " + currentPlayer.cards.size());
+
 
 		currentPlayer.printTerritories();
 
@@ -325,10 +331,10 @@ public class RiskGame extends Canvas{
 						// passing the currentPlayer lost units and the defending player lost units
 						// for results analysis or else
 						currentPlayer.combatAnalysis(unitsLost[0], unitsLost[1]);
-						
+
 						// draw frame
 						frame.repaint();
-						
+
 						try {
 							Thread.sleep(sleepTime);
 						} catch (InterruptedException e) {
@@ -344,7 +350,7 @@ public class RiskGame extends Canvas{
 
 			// Re-update our model
 			currentPlayer.updateModel();
-			
+
 			// draw frame
 			frame.repaint();
 		}
@@ -361,14 +367,14 @@ public class RiskGame extends Canvas{
 			}
 		}
 	}
-	
+
 	private void executeMovementPhase(){
 		currentPlayer.chooseMovementTerritoriesAndUnits();
-		
+
 		Territory from = currentPlayer.getOriginMovementTerritory();
 		Territory to = currentPlayer.getDestinationMovementTerritory();
 		int units = currentPlayer.getMovementUnits();
-		
+
 		if(from != null && to != null && units > 0){
 			if(currentPlayer.moveSoldiers(from, to, units)){
 				System.out.println("Player made a units move");
@@ -385,7 +391,7 @@ public class RiskGame extends Canvas{
 					if(p.myOccupiedTerritories.size() == 0){
 						System.out.println("Player : " + p.name + " was Eliminated!!!");
 						players.remove(p);
-						
+
 						//Scanner scan = new Scanner(System.in);
 						//String userInput = scan.nextLine();
 					}
@@ -402,7 +408,7 @@ public class RiskGame extends Canvas{
 			//String userInput = scan.nextLine();
 			frame.setVisible(false); //you can't see me!
 			frame.dispose();
-			
+
 			//System.exit(0);
 		}
 	}
@@ -415,7 +421,11 @@ public class RiskGame extends Canvas{
 		int nbControlledTerritories = currentPlayer.myOccupiedTerritories.size();
 
 		// Add by number of controlled territories
-		if(nbControlledTerritories > 36){
+		if(nbControlledTerritories > 40){
+			num += 11;
+		} else if(nbControlledTerritories > 38 && nbControlledTerritories < 40){
+			num += 10;
+		} else if(nbControlledTerritories > 36 && nbControlledTerritories < 38){
 			num += 9;
 		} else if(nbControlledTerritories > 33 && nbControlledTerritories < 36){
 			num += 8;
@@ -434,7 +444,7 @@ public class RiskGame extends Canvas{
 		} else if(nbControlledTerritories > 12 && nbControlledTerritories < 15){
 			num += 1;
 		}
-		
+
 		num +=  getCardUnits();
 
 		int totalUnits = currentPlayer.countUnits();
@@ -444,19 +454,13 @@ public class RiskGame extends Canvas{
 		} 
 		return num;
 	}
-	
+
 	private int getCardUnits(){
 		ArrayList<Card> cards = currentPlayer.tradeCards();
 		if(cards != null){
 			if(cards.size() == 3){
 				int bonus = Card.tradeCards(currentPlayer, cards.get(0), cards.get(1), cards.get(2));
 				if(bonus != 0){
-					bonus += BONUS_UNITS_COUNTER;
-					if(BONUS_UNITS_COUNTER < 40){
-						BONUS_UNITS_COUNTER += 5;
-					} else {
-						BONUS_UNITS_COUNTER = 40;
-					}
 					return bonus;
 				} else {
 					System.out.println("Bad cards function");
@@ -466,79 +470,79 @@ public class RiskGame extends Canvas{
 				System.out.println("Bad cards count");
 			}
 		}
-		
+
 		return 0;
 	}
-	
+
 	public String getWinnerName(){
 		return winner;
 	}
-	
+
 	public void setupUI(){
-        frame = new JFrame("Risk");
-        try {
-        	//URL url = getClass().getResource("/images/riskmap.png");
-        	riskMap = ImageIO.read(new FileInputStream("img/images/riskmap.png"));
+		frame = new JFrame("Risk");
+		try {
+			//URL url = getClass().getResource("/images/riskmap.png");
+			riskMap = ImageIO.read(new FileInputStream("img/images/riskmap.png"));
 			//riskMap =  ImageIO.read(url);
 		} catch (IOException e) {
 			System.out.println("Error loading image from ressources");
 		}
-        font = new Font ("Verdana", Font.BOLD , 18);
-        
-        frame.add(new MyPanel());
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(1200, 780);
-        frame.setLocationRelativeTo(null);
-        frame.setVisible(true);
+		font = new Font ("Verdana", Font.BOLD , 18);
+
+		frame.add(new MyPanel());
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setSize(1200, 780);
+		frame.setLocationRelativeTo(null);
+		frame.setVisible(true);
 	}
-	
+
 	public class MyPanel extends JPanel {
-        /**
+		/**
 		 * Simple panel to display primitive graphics
 		 */
 		private static final long serialVersionUID = 1L;
 
 		public void paint(Graphics g) {
-            Graphics2D g2d = (Graphics2D) g;
-            g2d.drawImage(riskMap, 0, 0, null);
-            g.setFont(font);
-            
-            // Draw all player units (with their respective color)
-            try {
-            	synchronized (g2d) {
-	            	for(Player p : players){
-	                	synchronized (p) {
-	                    	for(Territory t : p.myOccupiedTerritories){
-	                    		synchronized (t) {
-	                    			g.setColor(p.color);
-	                    			g2d.drawString(Integer.toString(t.getUnits()), t.position.x, t.position.y);
+			Graphics2D g2d = (Graphics2D) g;
+			g2d.drawImage(riskMap, 0, 0, null);
+			g.setFont(font);
+
+			// Draw all player units (with their respective color)
+			try {
+				synchronized (g2d) {
+					for(Player p : players){
+						synchronized (p) {
+							for(Territory t : p.myOccupiedTerritories){
+								synchronized (t) {
+									g.setColor(p.color);
+									g2d.drawString(Integer.toString(t.getUnits()), t.position.x, t.position.y);
 								}
-	                    	}
-	    				}
-	                }
-				}
-            } catch (Exception e) {}
-            
-            // Draw Combat names
-            if(attacker != null && defender != null){
-    			g.setColor(Color.WHITE);
-    			String combatString = attacker.getOwner().name + " is attacking " + defender.getOwner().name +
-    							" from " + attacker.name + " to " + defender.name;
-    			g2d.drawString(combatString, 550, 30);
-            }
- 
-            // Draw Player names
-            int offset = 0;
-            try {
-	            for(Player p : players){
-	            	synchronized (p) {
-	        			g.setColor(p.color);
-	        			g2d.drawString(p.name, 30, 650 + offset);
-	        			offset += 20;
+							}
+						}
 					}
-	
-	            }
+				}
 			} catch (Exception e) {}
-        }
-    }
+
+			// Draw Combat names
+			if(attacker != null && defender != null){
+				g.setColor(Color.WHITE);
+				String combatString = attacker.getOwner().name + " is attacking " + defender.getOwner().name +
+						" from " + attacker.name + " to " + defender.name;
+				g2d.drawString(combatString, 550, 30);
+			}
+
+			// Draw Player names
+			int offset = 0;
+			try {
+				for(Player p : players){
+					synchronized (p) {
+						g.setColor(p.color);
+						g2d.drawString(p.name + p.cards.size(), 30, 650 + offset);
+						offset += 20;
+					}
+
+				}
+			} catch (Exception e) {}
+		}
+	}
 }

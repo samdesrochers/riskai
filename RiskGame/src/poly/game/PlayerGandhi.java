@@ -32,13 +32,13 @@ public class PlayerGandhi extends Player {
  * */
 	
 
-	private CopyOnWriteArrayList<Territory> disabledCountries; // Countries who are going to be unable to act this turn.
+	//private CopyOnWriteArrayList<Territory> disabledCountries; // Countries who are going to be unable to act this turn.
 	private CopyOnWriteArrayList<Territory> checkedCountries; // Checked countries used for when looking further ahead of the enemy lines.
 	private ArrayList<Territory> safeCountries;
 	private ArrayList<Territory> aloneCountries;
 	private ArrayList<Territory> frontlineCountries;
 	private ArrayList<Territory> internalCountries;
-	private ArrayList<Territory> largestTerritory;
+	//private ArrayList<Territory> largestTerritory;
 	
 	public PlayerGandhi(String name) {
 		super(name);
@@ -81,7 +81,8 @@ public class PlayerGandhi extends Player {
 			{
 				if(t.adjacentTerritories.size() <= 2)
 				{
-					return t.name;
+					if(!t.isOccupied)
+						return t.name;
 				}
 			}
 			else if(frontlineCountries.contains(t))	// Le reste des choix à faire
@@ -642,7 +643,7 @@ public class PlayerGandhi extends Player {
 								this.willAttack = true;
 							}
 						}
-						else if(t.getUnits() < t2.getUnits() && t.getUnits() > 4) // Here I hesitate to attack the larger force but do so if I have more then 4 units.
+						else if(t.getUnits() < t2.getUnits() && t.getUnits() > 3) // Here I hesitate to attack the larger force but do so if I have more then 4 units.
 						{
 							if(ran.nextInt(4) > 3)
 							{
@@ -658,7 +659,7 @@ public class PlayerGandhi extends Player {
 		{
 			count += t.getUnits();
 		}
-		if(count < myOccupiedTerritories.size()*1.4)
+		if(count < myOccupiedTerritories.size()*1.7)
 			this.willAttack = false;
 	}
 
@@ -821,7 +822,7 @@ public class PlayerGandhi extends Player {
 						this.moveDestination = t2;
 					}
 				}
-				this.moveUnits = bestOrigin.getUnits() - 1;
+				this.moveUnits = bestOrigin.getUnits() - 2;
 				}
 			}
 			else if(internalCountries.size() == 0) // Deplacement d'uniformisation dans le cas ou on a pas de pays interne.
@@ -846,7 +847,7 @@ public class PlayerGandhi extends Player {
 						this.moveDestination = t2;
 					}
 				}
-				this.moveUnits = bestOrigin.getUnits() - this.moveDestination.getUnits() - 1;
+				this.moveUnits = bestOrigin.getUnits() - this.moveDestination.getUnits() - 2;
 				}
 			}
 			else
@@ -873,7 +874,7 @@ public class PlayerGandhi extends Player {
 						lastBestOrigin = t2;
 					}
 				}
-				this.moveUnits = bestOrigin.getUnits() - 1;
+				this.moveUnits = bestOrigin.getUnits() - 2;
 				}
 			}
 		}
@@ -894,7 +895,7 @@ public class PlayerGandhi extends Player {
 			this.moveOrigin = lastBestOrigin;
 			this.moveDestination = bestOrigin; // Best origin devrait peut-etre best destination.. erreur de ma part
 			lastBestOrigin = bestOrigin;
-			this.moveUnits = this.moveOrigin.getUnits() - 2;
+			this.moveUnits = this.moveOrigin.getUnits() - 3;
 		}
 	}
 }
