@@ -9,7 +9,6 @@ public class HugoAI extends Player
   public static int m_numeroTerritoireARenforcir;
 	private ArrayList<String> m_listeTerritoiresVoulusInitial;
 	private double m_ratio;
-	private Boolean m_territoireConquisDerniereAttaque;
 	
 	
 	public HugoAI(String name)
@@ -31,8 +30,6 @@ public class HugoAI extends Player
 		m_numeroTerritoireARenforcir = 0;
 		
 		m_ratio = 1.5;
-		
-		m_territoireConquisDerniereAttaque = false;
 	}
 	
 	/*******************************************************
@@ -351,7 +348,6 @@ public class HugoAI extends Player
 				territoriesMissing.add(t.name);
 			}
 			
-			int count = 0;
 			for(Territory t : playerTerritories)
 			{
 				territoriesMissing.remove(t.name);
@@ -583,8 +579,6 @@ public class HugoAI extends Player
 		
 		ArrayList<String> territoireVerifie = new ArrayList<String>();
 		
-		int nbrUnite = 0;
-		
 		switch(profondeur)
 		{
 		// recherche de profondeur 1
@@ -594,7 +588,6 @@ public class HugoAI extends Player
 				if(estAMoi(t) && territoireToucheEnemies(t))
 				{
 					destination = t;
-					nbrUnite = t.getUnits();
 				}
 			}
 			break;
@@ -624,7 +617,6 @@ public class HugoAI extends Player
 					if(estAMoi(t2) && t2 != source && territoireToucheEnemies(t2))
 					{
 						destination = t;
-						nbrUnite = t2.getUnits();
 					}
 				}
 			}
@@ -664,7 +656,6 @@ public class HugoAI extends Player
 						if(estAMoi(t) && t3 != source && territoireToucheEnemies(t3))
 						{
 							destination = t;
-							nbrUnite = t3.getUnits();
 						}
 					}
 				}
@@ -675,6 +666,11 @@ public class HugoAI extends Player
 			int rand = new Random().nextInt(source.adjacentTerritories.size());
 			
 			destination = source.adjacentTerritories.get(rand);
+			
+			if(!estAMoi(destination))
+			{
+				destination = trouverTerritoirePlusPresDeLaFrontiere(source, 4);
+			}
 			break;
 		}
 		
