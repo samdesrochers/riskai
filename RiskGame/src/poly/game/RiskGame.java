@@ -6,6 +6,8 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -29,18 +31,18 @@ import javax.swing.JPanel;
  * AI so we could host a final competition by the end of the 
  * project.  
  * 
- * Some rules may differ from the actual Official Rules
+ * Some rules may differ from the original Official Rules. 
+ * 
  * 
  * Author : Samuel Des Rochers
  *  
  * Contributor : Maxim Essipovitch
  * 
- * Paritcipants :	Samuel Des Rochers	(SamAI)
- * 					Maxim Essipovitch	(MaxAI)
- * 					Hugo Cardin			(HugoAI)
+ * Paritcipants :	Samuel Des Rochers		(SamAI)
+ * 					Maxim Essipovitch		(MaxAI)
+ * 					Hugo Cardin				(HugoAI)
  * 					Emile Ouelette-Delorme 	(PoreuxAI)
  * 					Philippe Rosa-Pong		(PlayerGhandi)
- * 					Othman Tazi
  * 
  **********************************************************/
 
@@ -50,7 +52,7 @@ public class RiskGame extends Canvas{
 	 * Risk game global class
 	 */
 	private static final long serialVersionUID = 1L;
-	private static final long sleepTime = 50L;
+	private static long sleepTime = 50L;
 
 	public static final int PHASE_INITIAL 		= 0;
 	public static final int PHASE_TURN_BEGINS 	= 1;
@@ -69,20 +71,22 @@ public class RiskGame extends Canvas{
 	public int currentPlayerIndex;
 
 	public static int BONUS_UNITS_COUNTER 	= 3;
-	protected static int STARTING_UNITS 	= 25;	//20 for 6, 25 for 5, 30 for 4 
+	protected static int STARTING_UNITS 	= 30;	//20 for 6, 25 for 5, 30 for 4 
 	protected static int MAX_UNITS 			= 300;
 
 	protected boolean isOver = false;
 	public String winner = "";
+	public boolean didEleminatePlayer = false;
 
 	public static JFrame frame;
-	public JButton distributionButton;
-	public JButton roundButton;
+	public JButton slowSpeedButton;
+	public JButton fastSpeedButton;
+	public JButton extremeSpeedButton;
 
 	public Image riskMap;
 	public Font font;
 
-	public boolean isDistributionReady = false;
+	public static boolean isStarted = false;
 
 	public RiskGame(){
 		this.setupUI();
@@ -108,7 +112,15 @@ public class RiskGame extends Canvas{
 		Map map = new Map();
 		territories = map.generate();
 		System.out.println("------- STARTING TERRITORIES DISTRIBUTION -------");
-
+		
+		// Wait for user input
+		while(!isStarted){
+			try {
+				Thread.sleep(5);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 	// Initialize players
@@ -117,7 +129,7 @@ public class RiskGame extends Canvas{
 		currentPlayerIndex = -1;
 
 		Player p1 	= new SamAI("Sam");
-		p1.color = Color.white;
+		p1.color = Color.YELLOW;
 
 		Player p2 = new PoreuxAI("Emile");
 		p2.color = Color.blue;
@@ -135,11 +147,11 @@ public class RiskGame extends Canvas{
 		p6.color = Color.cyan;
 
 		players.add(p1);
-		players.add(p2);
-		players.add(p5);
-		players.add(p4);
+		//players.add(p2);
 		players.add(p3);
-		//players.add(p6);
+		players.add(p4);
+		players.add(p5);
+
 	}
 
 	// Players each pick a territory one after the other
@@ -251,7 +263,6 @@ public class RiskGame extends Canvas{
 			frame.repaint();
 		}
 		System.out.println("Game Over!");
-
 	}
 
 	private void executeTurn(){
@@ -389,11 +400,11 @@ public class RiskGame extends Canvas{
 			synchronized (currentPlayer) {
 				for(Player p : players){
 					if(p.myOccupiedTerritories.size() == 0){
-						System.out.println("Player : " + p.name + " was Eliminated!!!");
+						System.out.println(p.name + " was Eliminated!");
 						players.remove(p);
-
-						//Scanner scan = new Scanner(System.in);
-						//String userInput = scan.nextLine();
+						
+						tranferPlayerCardsToWinner(p);
+						System.out.println("Transfering " +p.name + "'s card to " + currentPlayer.name);
 					}
 				}
 			}
@@ -404,12 +415,8 @@ public class RiskGame extends Canvas{
 			isOver = true;
 			Player winner = players.get(0);
 			System.out.println(winner.name + " WON THE GAME !!!");
-			//Scanner scan = new Scanner(System.in);
-			//String userInput = scan.nextLine();
-			frame.setVisible(false); //you can't see me!
+			frame.setVisible(false); 
 			frame.dispose();
-
-			//System.exit(0);
 		}
 	}
 
@@ -444,13 +451,16 @@ public class RiskGame extends Canvas{
 		} else if(nbControlledTerritories > 12 && nbControlledTerritories < 15){
 			num += 1;
 		}
-
-		num +=  getCardUnits();
+		
+		num += getCardUnits();
+		if(currentPlayer.cards.size() > 5){
+			num += forcePlayCards(currentPlayer);
+		}
 
 		int totalUnits = currentPlayer.countUnits();
-		if(totalUnits + num >= MAX_UNITS){
+		if(totalUnits + num > MAX_UNITS){
 			System.out.println("Max Unit count reached");
-			num = 0;
+			num = MAX_UNITS - totalUnits;
 		} 
 		return num;
 	}
@@ -470,8 +480,49 @@ public class RiskGame extends Canvas{
 				System.out.println("Bad cards count");
 			}
 		}
-
 		return 0;
+	}
+	
+	// Gain the eliminated player's card (up to 6 max)
+	private void tranferPlayerCardsToWinner(Player loser){
+		currentPlayer.cards.addAll(loser.cards);
+		while(currentPlayer.cards.size() > 6){
+			currentPlayer.cards.remove(currentPlayer.cards.size()-1);
+		}
+	}
+	
+	private int forcePlayCards(Player p){
+		int value = 0;
+		ArrayList<Card> cards = currentPlayer.cards;
+		
+		ArrayList<Card> inf_cards = new ArrayList<Card>();
+		ArrayList<Card> cav_cards = new ArrayList<Card>();
+		ArrayList<Card> art_cards = new ArrayList<Card>();
+		ArrayList<Card> tri_cards = new ArrayList<Card>();
+		
+		for(int i = 0; i < cards.size(); i++){
+			Card card = cards.get(i);
+			if(card.type == Card.TYPE_INFANTRY){
+				inf_cards.add(card);
+			} else if(card.type == Card.TYPE_CAVALRY){
+				cav_cards.add(card);
+			} else if(card.type == Card.TYPE_ARTILERY){
+				art_cards.add(card);
+			} 
+		}
+		if(art_cards.size() > 0 && cav_cards.size() > 0 && inf_cards.size() > 0){
+			tri_cards.add(art_cards.get(0));
+			tri_cards.add(cav_cards.get(0));
+			tri_cards.add(inf_cards.get(0));
+			value = Card.tradeCards(currentPlayer, cards.get(0), cards.get(1), cards.get(2));
+		} else if(art_cards.size() >= 3){
+			value = Card.tradeCards(currentPlayer, cards.get(0), cards.get(1), cards.get(2));
+		} else if(cav_cards.size() >= 3){
+			value = Card.tradeCards(currentPlayer, cards.get(0), cards.get(1), cards.get(2));
+		} else if(inf_cards.size() >= 3){
+			value = Card.tradeCards(currentPlayer, cards.get(0), cards.get(1), cards.get(2));
+		} 
+		return value;
 	}
 
 	public String getWinnerName(){
@@ -481,13 +532,29 @@ public class RiskGame extends Canvas{
 	public void setupUI(){
 		frame = new JFrame("Risk");
 		try {
-			//URL url = getClass().getResource("/images/riskmap.png");
 			riskMap = ImageIO.read(new FileInputStream("img/images/riskmap.png"));
-			//riskMap =  ImageIO.read(url);
 		} catch (IOException e) {
 			System.out.println("Error loading image from ressources");
 		}
 		font = new Font ("Verdana", Font.BOLD , 18);
+		
+		slowSpeedButton = new JButton("Speed - Slow");
+		frame.add(slowSpeedButton);
+		fastSpeedButton = new JButton("Speed - Fast");
+		frame.add(fastSpeedButton);
+		extremeSpeedButton = new JButton("Speed - Extreme");
+		frame.add(extremeSpeedButton);
+		
+		slowSpeedButton.setLocation(5, 5);
+		slowSpeedButton.setSize(140, 20);
+		fastSpeedButton.setLocation(5, 30);
+		fastSpeedButton.setSize(140, 20);
+		extremeSpeedButton.setLocation(5, 55);
+		extremeSpeedButton.setSize(140, 20);
+		
+		slowSpeedButton.addActionListener (new slowSpeedButtonClicked());
+		fastSpeedButton.addActionListener (new fastSpeedButtonClicked());
+		extremeSpeedButton.addActionListener (new extremeSpeedButtonClicked());
 
 		frame.add(new MyPanel());
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -526,23 +593,47 @@ public class RiskGame extends Canvas{
 			// Draw Combat names
 			if(attacker != null && defender != null){
 				g.setColor(Color.WHITE);
-				String combatString = attacker.getOwner().name + " is attacking " + defender.getOwner().name +
-						" from " + attacker.name + " to " + defender.name;
-				g2d.drawString(combatString, 550, 30);
+				String combatString = "- " + currentPlayer.name + "'s Turn ";
+				g2d.drawString(combatString, 30, 440);
 			}
 
 			// Draw Player names
 			int offset = 0;
 			try {
+				g2d.drawString("Player - Cards ", 30, 465 + offset);
 				for(Player p : players){
 					synchronized (p) {
 						g.setColor(p.color);
-						g2d.drawString(p.name + p.cards.size(), 30, 650 + offset);
+						g2d.drawString(p.name + " - " +p.cards.size(), 30, 510 + offset);
 						offset += 20;
 					}
 
 				}
 			} catch (Exception e) {}
+		}
+	}
+	
+	static class slowSpeedButtonClicked implements ActionListener {        
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				RiskGame.sleepTime = 350L;
+				RiskGame.isStarted = true;
+			}
+	}
+	
+	static class fastSpeedButtonClicked implements ActionListener {        
+		@Override
+		public void actionPerformed(ActionEvent arg0) {
+			RiskGame.sleepTime = 10L;
+			RiskGame.isStarted = true;
+		}
+	}
+	
+	static class extremeSpeedButtonClicked implements ActionListener {        
+		@Override
+		public void actionPerformed(ActionEvent arg0) {
+			RiskGame.sleepTime = 0L;
+			RiskGame.isStarted = true;
 		}
 	}
 }
