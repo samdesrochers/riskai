@@ -72,7 +72,7 @@ public class RiskGame extends Canvas{
 
 	public static int BONUS_UNITS_COUNTER 	= 3;
 	protected static int STARTING_UNITS 	= 30;	//20 for 6, 25 for 5, 30 for 4 
-	protected static int MAX_UNITS 			= 300;
+	protected static int MAX_UNITS 			= 200;
 
 	protected boolean isOver = false;
 	public String winner = "";
@@ -142,9 +142,6 @@ public class RiskGame extends Canvas{
 
 		Player p5 = new HugoAI("Hugo");
 		p5.color = Color.black;
-
-		Player p6 = new RandomAI("RANDOM");
-		p6.color = Color.cyan;
 
 		players.add(p1);
 		//players.add(p2);
@@ -455,6 +452,22 @@ public class RiskGame extends Canvas{
 		num += getCardUnits();
 		if(currentPlayer.cards.size() > 5){
 			num += forcePlayCards(currentPlayer);
+		}
+		
+		if(currentPlayer.countUnits() > MAX_UNITS){
+			System.out.println(currentPlayer.name + " unit count is above maximum allowed, CHEATER!");
+			// This is most likely due to a player dividing an Integer.  The result
+			// is thus rounded to a value.
+			// TL;DR : DO NOT DIVIDE INTEGER WHEN ASSIGNING UNITS
+			
+			// If everything went batshit crazy, abort 
+			if(currentPlayer.countUnits() > 2*MAX_UNITS){
+				try {
+					this.players.remove(currentPlayer);
+					this.executeGameOverCheck();
+				} catch (Exception e) {
+				}
+			}
 		}
 
 		int totalUnits = currentPlayer.countUnits();

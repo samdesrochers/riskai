@@ -8,15 +8,20 @@ public class Main {
 		ArrayList<String> winnersList = new ArrayList<String>();
 		HashMap<Integer, String> winners = new HashMap<Integer, String>();
 		
-		for(int i = 0; i < 100; i++){
-	        RiskGame game = new RiskGame();
-	        game.startGame();
-	        winnersList.add(game.getWinnerName());
-
-	        winners.put(game.getWinnerName().hashCode(), game.getWinnerName());
-		}	
+		int nbGamesPlayed = 0;
+		int targetNbGames = 100;
 		
-		System.out.println("------------- 21 Games results -------------");
+
+			for(; nbGamesPlayed < targetNbGames; nbGamesPlayed++){
+		        RiskGame game = new RiskGame();
+		        game.startGame();
+		        winnersList.add(game.getWinnerName());
+		        winners.put(game.getWinnerName().hashCode(), game.getWinnerName());
+			}
+
+		
+		System.out.println("Number of rage-quitted games : " + (targetNbGames - nbGamesPlayed));
+		System.out.println("-------------" + nbGamesPlayed + " Games results -------------");
 		for(String name : winners.values()){     
 			System.out.print(name + "\t : ");
 			for(String winner : winnersList){

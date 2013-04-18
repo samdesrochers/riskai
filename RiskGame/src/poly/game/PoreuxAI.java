@@ -152,14 +152,14 @@ public class PoreuxAI extends Player {
 				if(!myOccupiedTerritories.contains(tAdja))
 				{
 					//cette variable permet de prioritiser légèrement l'australie et l'amérique du sud face aux autres continents.
-					int variableInfluence = 0;
-					if(tAdja.continent == Map.AUSTRALIA)
-						variableInfluence +=5;
-					if(tAdja.continent == Map.SOUTH_AMERICA)
-						variableInfluence +=5;
+//					int variableInfluence = 0;
+//					if(tAdja.continent == Map.AUSTRALIA)
+//						variableInfluence +=5;
+//					if(tAdja.continent == Map.SOUTH_AMERICA)
+//						variableInfluence +=5;
 					//le scorepotentiel agit comme heuristique
 					int scorePotentiel = (int) (t.getUnits()- Math.pow(tAdja.getUnits(),1+((nbJoueurs-2)/2)))/*+variableInfluence*/;
-					if(scorePotentiel > proieScore && (t.getUnits() + remainingUnits)< 300)
+					if(scorePotentiel > proieScore && (t.getUnits() + remainingUnits)< RiskGame.MAX_UNITS)
 					{
 						//proieScore agit comme heuristique maximale
 						proieScore = scorePotentiel;
@@ -215,11 +215,11 @@ public class PoreuxAI extends Player {
 				if(!myOccupiedTerritories.contains(tAdja))
 				{
 					//cette variable permet de prioritiser légèrement l'australie et l'amérique du sud face aux autres continents.
-					int variableInfluence = 0;
-					if(tAdja.continent == Map.AUSTRALIA)
-						variableInfluence +=5;
-					if(tAdja.continent == Map.SOUTH_AMERICA)
-						variableInfluence +=5;
+//					int variableInfluence = 0;
+//					if(tAdja.continent == Map.AUSTRALIA)
+//						variableInfluence +=5;
+//					if(tAdja.continent == Map.SOUTH_AMERICA)
+//						variableInfluence +=5;
 					//le scorepotentiel agit comme heuristique
 					int scorePotentiel = (int) (t.getUnits()- Math.pow(tAdja.getUnits(),1+((nbJoueurs-2)/2)))/*+variableInfluence*/;
 					if(scorePotentiel > proieScore && t.getUnits()>2)

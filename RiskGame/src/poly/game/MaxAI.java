@@ -199,7 +199,6 @@ public class MaxAI extends Player{
 			chosen.addUnits(1);
 			remainingUnits -= 1;
 		}
-
 	}
 
 	@Override

@@ -794,7 +794,7 @@ public class PlayerGandhi extends Player {
 	@Override
 	public void chooseMovementTerritoriesAndUnits() {
 		Territory bestOrigin = null;
-		Territory bestDestination = null;
+		//Territory bestDestination = null;
 		if(!myOccupiedTerritories.contains(lastBestOrigin)) // Au cas ou on a perdu notre terrain :<
 			deplacementTerminer = true;
 		
