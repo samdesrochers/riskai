@@ -576,8 +576,28 @@ public class PlayerGandhi extends Player {
 		{															 	// de faire des gains.
 			if(this.remainingUnits > 0)
 			{
-				bestAssaultFrontline.addUnits(1);
-				this.remainingUnits -= 1;
+				if(bestAssaultFrontline != null)
+				{
+					bestAssaultFrontline.addUnits(1);
+					this.remainingUnits -= 1;
+				}
+				else
+				{
+					if(this.remainingUnits > 0)
+					{
+						int rt = ran.nextInt(myOccupiedTerritories.size());
+						int ru = 0;
+						// random nb of units
+
+						ru = ran.nextInt(this.remainingUnits) + 1;
+
+						// assign random nb of units on the random territory
+						Territory pick = myOccupiedTerritories.get(rt);
+						pick.addUnits(ru);
+						// Remove the units that were placed from your units pool
+						this.remainingUnits -= ru;
+					}
+				}
 			}
 		}
 		else
@@ -895,7 +915,7 @@ public class PlayerGandhi extends Player {
 			this.moveOrigin = lastBestOrigin;
 			this.moveDestination = bestOrigin; // Best origin devrait peut-etre best destination.. erreur de ma part
 			lastBestOrigin = bestOrigin;
-			this.moveUnits = this.moveOrigin.getUnits() - 3;
+			this.moveUnits = this.moveOrigin.getUnits() - 4;
 		}
 	}
 }

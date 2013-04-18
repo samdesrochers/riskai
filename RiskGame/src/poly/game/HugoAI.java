@@ -1,7 +1,6 @@
 package poly.game;
 
 import java.util.ArrayList;
-import java.util.Random;
 
 public class HugoAI extends Player
 {
@@ -9,7 +8,6 @@ public class HugoAI extends Player
   public static int m_numeroTerritoireARenforcir;
 	private ArrayList<String> m_listeTerritoiresVoulusInitial;
 	private double m_ratio;
-	private Boolean m_territoireConquisDerniereAttaque;
 	
 	
 	public HugoAI(String name)
@@ -31,8 +29,6 @@ public class HugoAI extends Player
 		m_numeroTerritoireARenforcir = 0;
 		
 		m_ratio = 1.5;
-		
-		m_territoireConquisDerniereAttaque = false;
 	}
 	
 	/*******************************************************
@@ -201,7 +197,7 @@ public class HugoAI extends Player
 				} 
 			}
 			
-			// on verifie si ya possibilitÃ© d'une carte de chaque pcq
+			// on verifie si ya possibilitÃƒÂ© d'une carte de chaque pcq
 			// ca vaut plus d'armees
 			if(inf_cards.size() >= 1 && cav_cards.size() >= 1 && art_cards.size() >= 1)
 			{
@@ -250,6 +246,125 @@ public class HugoAI extends Player
 	{
 		super.updateModel();
 		
+		
+		
+		target = null;
+		attacker = null;
+		
+		if(!missingOneTerritoryForContinentAndCanAttak())
+		{
+			checkForTarget();
+		}
+		
+		
+		
+		
+	}
+	
+	private Boolean missingOneTerritoryForContinentAndCanAttak()
+	{
+		Boolean targetAndAttackerFound = false;
+		
+		
+		ArrayList<String> territoryMissing;
+		
+		// on parcourt la liste des continents pour voir s'il me manque un territoire pour avoir l'un d'eux
+		for(Continent c : Map.continents)
+		{
+			territoryMissing = checkWhichTerritoriesMissToHaveContient(c.name, myOccupiedTerritories);
+			
+			// un seul territoire manquant
+			if(territoryMissing.size() == 1)
+			{
+				// on regarde si je peux l'attaquer
+				String territoryToTarget = territoryMissing.get(0);
+				
+				// on va cherche le territoire en question dans la liste
+				for(Territory tTarget : public_allTerritories)
+				{
+					// si c'est le territoire recherche
+					if(tTarget.name == territoryToTarget)
+					{
+						int diff = 0;
+						Territory attackerTemp = null;
+						
+						for(Territory tAdjacent : tTarget.adjacentTerritories)
+						{
+							// si le territoire m'appartient
+							if(estAMoi(tAdjacent))
+							{
+								// on calcul la difference d'unites entre les 2 territoires
+								int diffTemp = tAdjacent.getUnits() - tTarget.getUnits();
+								
+								// si la difference d'unites entre l'attaquant et la cible est plus grosse que celle precedente (au moins 1 de plus puisque diff est initialise a 0)
+								// on ne suit pas la regle du ratio de 1.5 puisqu'on cherche a aller chercher le territoire manquant pour le bonus d'unites
+								if(diffTemp > diff)
+								{
+									// le meilleur attaquant jusqu'a date
+									attackerTemp = tAdjacent;
+									diff = diffTemp;
+								}	
+							}
+						}
+						
+						// si un attaquant a ete trouve pour tenter d'aller chercher le territoire voulu
+						if(attackerTemp != null)
+						{
+							targetAndAttackerFound = true;
+							attacker = attackerTemp;
+							target = tTarget;
+							willAttack = true;
+							break;
+						}
+					}
+				}
+			}
+		}
+		
+		return targetAndAttackerFound;
+	}
+	
+	// Returns the territories that the player needs to hate the continent
+	private ArrayList<String> checkWhichTerritoriesMissToHaveContient(String continentName, ArrayList<Territory> playerTerritories)
+	{
+		Continent targetContinent = null;
+		ArrayList<String> territoriesMissing = new ArrayList<String>();
+		
+		for(Continent cont : Map.continents)
+		{
+			if(cont.name == continentName)
+			{
+				targetContinent = cont;
+			} 
+		}
+		
+		if(targetContinent != null)
+		{
+			
+			
+			for(Territory t : targetContinent.territories)
+			{
+				territoriesMissing.add(t.name);
+			}
+			
+			for(Territory t : playerTerritories)
+			{
+				territoriesMissing.remove(t.name);
+			}
+		}
+		else
+		{
+			System.out.println("Bad continent name");
+			// en vidant la liste, je m'assure que l'ai ne cherchera pas a conquerir un territoire pour ce contient
+			territoriesMissing.clear();
+		}
+		
+		return territoriesMissing;
+	}
+		
+	
+	private void checkForTarget()
+	{
 		int nombreUniteCible = 1000;
 		
 		int differenceUniteUneUnite = 0;
@@ -258,64 +373,61 @@ public class HugoAI extends Player
 		
 		Boolean cibleTrouveSuivantRegle = false;
 		
-		target = null;
-		attacker = null;
-		
 		// la recherche cherche un territoire ou la difference d'unite entre l'attaquant et la cible respecte la regle du ratio superieur, celui-ci
-		// augmente a chaque attaque pour attaquer de moins en moins de territoire
-		for(Territory monTerritoire : this.myOccupiedTerritories)
-		{
-			int nbrUnites = monTerritoire.getUnits();
-			
-			if(nbrUnites > 1)
-			{
-				for(Territory territoireVoisin : monTerritoire.adjacentTerritories)
+				// augmente a chaque attaque pour attaquer de moins en moins de territoire
+				for(Territory monTerritoire : this.myOccupiedTerritories)
 				{
-					if(estAMoi(territoireVoisin))
-					{
-						continue;
-					}
-					int diff = monTerritoire.getUnits() - territoireVoisin.getUnits();
+					int nbrUnites = monTerritoire.getUnits();
 					
-					// si mon territoire a m_ratio fois le nombre d'unites de la cible et que le nombre d'unite ennemis est inferieur a l'ancienne valeur
-					if (territoireVoisin.getUnits() <= m_ratio * monTerritoire.getUnits() + 1 && (territoireVoisin.getUnits() < nombreUniteCible))
+					if(nbrUnites > 1)
 					{
-						nombreUniteCible = territoireVoisin.getUnits();
-						attacker = monTerritoire;
-						target = territoireVoisin;
-						willAttack = true;
-						
-						
-						cibleTrouveSuivantRegle = true;
-					}
-					
-					// on cherche le plus gros diferentiel ou le territoire ennemi n'a qu'une armee dessus
-					if(territoireVoisin.getUnits() == 1 && diff > differenceUniteUneUnite)
-					{
-						attaquantPossiblePourUneUnite = monTerritoire;
-						ciblePossibleAyantUneUnite = territoireVoisin;
-						differenceUniteUneUnite = diff;
+						for(Territory territoireVoisin : monTerritoire.adjacentTerritories)
+						{
+							if(estAMoi(territoireVoisin))
+							{
+								continue;
+							}
+							int diff = monTerritoire.getUnits() - territoireVoisin.getUnits();
+							
+							// si mon territoire a m_ratio fois le nombre d'unites de la cible et que le nombre d'unite ennemis est inferieur a l'ancienne valeur
+							if (territoireVoisin.getUnits() <= m_ratio * monTerritoire.getUnits() + 1 && (territoireVoisin.getUnits() < nombreUniteCible))
+							{
+								nombreUniteCible = territoireVoisin.getUnits();
+								attacker = monTerritoire;
+								target = territoireVoisin;
+								willAttack = true;
+								
+								
+								cibleTrouveSuivantRegle = true;
+							}
+							
+							// on cherche le plus gros diferentiel ou le territoire ennemi n'a qu'une armee dessus
+							if(territoireVoisin.getUnits() == 1 && diff > differenceUniteUneUnite)
+							{
+								attaquantPossiblePourUneUnite = monTerritoire;
+								ciblePossibleAyantUneUnite = territoireVoisin;
+								differenceUniteUneUnite = diff;
+							}
+						}
 					}
 				}
-			}
-		}
-		
-		m_ratio += 0.1;
-		
-		
-		// si aucun territoire respectait la regle, on va essaye d'aller chercher un territoire ou il n'y a qu'une armee
-		// s'il y avait un tel territoire
-		if(!cibleTrouveSuivantRegle && attaquantPossiblePourUneUnite != null && ciblePossibleAyantUneUnite != null && !m_territoireConquisDerniereAttaque)
-		{
-			attacker = attaquantPossiblePourUneUnite;
-			target = ciblePossibleAyantUneUnite;
-			willAttack = true;
-		}
-		
-		if(attacker == null || target == null)
-		{
-			willAttack = false;
-		}
+				
+				m_ratio += 0.1;
+				
+				
+				// si aucun territoire respectait la regle, on va essaye d'aller chercher un territoire ou il n'y a qu'une armee
+				// s'il y avait un tel territoire
+				if(!cibleTrouveSuivantRegle && attaquantPossiblePourUneUnite != null && ciblePossibleAyantUneUnite != null)// && !m_territoireConquisDerniereAttaque)
+				{
+					attacker = attaquantPossiblePourUneUnite;
+					target = ciblePossibleAyantUneUnite;
+					willAttack = true;
+				}
+				
+				if(attacker == null || target == null)
+				{
+					willAttack = false;
+				}
 	}
 	
 	private Boolean estAMoi(Territory territoire)
@@ -370,25 +482,40 @@ public class HugoAI extends Player
 	@Override
 	public void didGainNewTerritory(Territory conqueredTerritory)
 	{		
-		// le territoire qui attaquait a au moins 1 territoire ennemi encore
-		// je partage donc les armees en 2
+		// si le territoire conquis est a la frontiere
 		if(territoireToucheEnemies(conqueredTerritory))
 		{
-			int nbrUnites = attacker.getUnits() / 2;
-			conqueredTerritory.setUnits(this.attacker.getUnits() - nbrUnites);
-			this.attacker.setUnits(nbrUnites);
+			// si le territoire attaquant est a la frontiere aussi on separe en 2
+			if(territoireToucheEnemies(attacker))
+			{
+				int nbrUnites = attacker.getUnits() / 2;
+				conqueredTerritory.setUnits(this.attacker.getUnits() - nbrUnites);
+				this.attacker.setUnits(nbrUnites);
+			}
+			// sinon seul le territoire conquis touche a des ennemis, on envoie donc toutes les troupes sauf 1
+			else
+			{
+				conqueredTerritory.setUnits(this.attacker.getUnits() - 1);
+				this.attacker.setUnits(1);
+			}
 		}
-		// le territoire n'a plus aucun voisin ennemi, j'envoie donc toutes
-		// les armees sur le nouveau
-		/*else if(attacker.getUnits() > 2)
-		{
-			conqueredTerritory.setUnits(this.attacker.getUnits() - 2);
-			this.attacker.setUnits(2);
-		}*/
+
+		// le territoire conquis n'a plus aucun voisin ennemi
 		else
 		{
-			conqueredTerritory.setUnits(this.attacker.getUnits() - 1);
-			this.attacker.setUnits(1);
+			// si le territoire attaquant est a la frontiere mais pas le conquis on laisse toutes les unites sauf 1 sur l'attaquant
+			if(territoireToucheEnemies(attacker))
+			{
+				conqueredTerritory.setUnits(1);
+				this.attacker.setUnits(attacker.getUnits() - 1);
+			}
+			// sinon aucun des 2 territoires ne touchent a des ennemis, on separe alors en 2
+			else
+			{
+				int nbrUnites = attacker.getUnits() / 2;
+				conqueredTerritory.setUnits(this.attacker.getUnits() - nbrUnites);
+				this.attacker.setUnits(nbrUnites);
+			}
 		}
 	}
 	
@@ -407,28 +534,30 @@ public class HugoAI extends Player
 		Territory de = null;
 		Territory a = null;
 		Territory aTemp = null;
+		int nbrUnitSourceADate = 1;
 		
 		// on parcourt mes territoires
 		for(Territory source : myOccupiedTerritories)
 		{
-			// si le territoire n'a pas plus qu'une armee c'est clair qu'on pourra pas en bouger
-			if(source.getUnits() > 1)
+			int nbrUnit = source.getUnits();			
+			
+			// si le territoire n'est pas a la frontiere et qu'il a plus d'unites que celui trouve precedemment
+			// je cherche a bouger le maximum d'unites
+			if(!territoireToucheEnemies(source) && nbrUnit > nbrUnitSourceADate)
 			{
-				// si le territoire n'est pas a la frontiere
-				if(!territoireToucheEnemies(source))
+				int profondeur = 1;
+				nbrUnitSourceADate = nbrUnit;
+				
+				// on va chercher le territoire de frontiere le plus pres
+				// on fait une recherche en profondeur avec une profondeur maximale de 3
+				while(aTemp == null && profondeur < 4)
 				{
-					int profondeur = 1;
-					
-					// on va chercher le territoire de frontiere le plus pres
-					while(aTemp == null)
-					{
-						aTemp = trouverTerritoirePlusPresDeLaFrontiere(source, profondeur);
-						profondeur++;
-					}
-					
-					de = source;
-					a = aTemp;
+					aTemp = trouverTerritoirePlusPresDeLaFrontiere(source, profondeur);
+					profondeur++;
 				}
+				
+				de = source;
+				a = aTemp;
 			}
 		}
 		
@@ -450,18 +579,15 @@ public class HugoAI extends Player
 		
 		ArrayList<String> territoireVerifie = new ArrayList<String>();
 		
-		int nbrUnite = 0;
-		
 		switch(profondeur)
 		{
-		// recherche en une de profondeur
+		// recherche de profondeur 1
 		case(1):
 			for(Territory t : source.adjacentTerritories)
 			{
-				if(territoireToucheEnemies(t) && t.getUnits() > nbrUnite)
+				if(estAMoi(t) && territoireToucheEnemies(t))
 				{
 					destination = t;
-					nbrUnite = t.getUnits();
 				}
 			}
 			break;
@@ -488,10 +614,9 @@ public class HugoAI extends Player
 						territoireVerifie.add(t2.name);
 					}
 					
-					if(t2 != source && territoireToucheEnemies(t2) && t2.getUnits() > nbrUnite)
+					if(estAMoi(t2) && t2 != source && territoireToucheEnemies(t2))
 					{
 						destination = t;
-						nbrUnite = t2.getUnits();
 					}
 				}
 			}
@@ -528,20 +653,17 @@ public class HugoAI extends Player
 						{
 							territoireVerifie.add(t3.name);
 						}
-						if(t3 != source && territoireToucheEnemies(t3) && t3.getUnits() > nbrUnite)
+						if(estAMoi(t) && t3 != source && territoireToucheEnemies(t3))
 						{
 							destination = t;
-							nbrUnite = t3.getUnits();
 						}
 					}
 				}
 			}
 			break;
-			// s'il est rendu a 4, on ne calcul plus on y va au hasard
+			// s'il est rendu a 4, on ne calcul plus
 		default:
-			int rand = new Random().nextInt(source.adjacentTerritories.size());
-			
-			destination = source.adjacentTerritories.get(rand);
+			destination = null;
 			break;
 		}
 		

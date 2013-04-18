@@ -11,16 +11,13 @@ public class Main {
 		int nbGamesPlayed = 0;
 		int targetNbGames = 100;
 		
-
-			for(; nbGamesPlayed < targetNbGames; nbGamesPlayed++){
+			for(;nbGamesPlayed < targetNbGames; nbGamesPlayed++){
 		        RiskGame game = new RiskGame();
 		        game.startGame();
 		        winnersList.add(game.getWinnerName());
 		        winners.put(game.getWinnerName().hashCode(), game.getWinnerName());
 			}
-
-		
-		System.out.println("Number of rage-quitted games : " + (targetNbGames - nbGamesPlayed));
+			
 		System.out.println("-------------" + nbGamesPlayed + " Games results -------------");
 		for(String name : winners.values()){     
 			System.out.print(name + "\t : ");
