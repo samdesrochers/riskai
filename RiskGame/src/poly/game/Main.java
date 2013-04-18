@@ -16,7 +16,7 @@ public class Main {
 	        winners.put(game.getWinnerName().hashCode(), game.getWinnerName());
 		}	
 		
-		System.out.println("------------- 21 Games results -------------");
+		System.out.println("------------- 100 Games results -------------");
 		for(String name : winners.values()){     
 			System.out.print(name + "\t : ");
 			for(String winner : winnersList){
