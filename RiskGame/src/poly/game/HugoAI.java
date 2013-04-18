@@ -1,7 +1,6 @@
 package poly.game;
 
 import java.util.ArrayList;
-import java.util.Random;
 
 public class HugoAI extends Player
 {
@@ -198,7 +197,7 @@ public class HugoAI extends Player
 				} 
 			}
 			
-			// on verifie si ya possibilitÃ© d'une carte de chaque pcq
+			// on verifie si ya possibilitÃƒÂ© d'une carte de chaque pcq
 			// ca vaut plus d'armees
 			if(inf_cards.size() >= 1 && cav_cards.size() >= 1 && art_cards.size() >= 1)
 			{
@@ -550,7 +549,8 @@ public class HugoAI extends Player
 				nbrUnitSourceADate = nbrUnit;
 				
 				// on va chercher le territoire de frontiere le plus pres
-				while(aTemp == null)
+				// on fait une recherche en profondeur avec une profondeur maximale de 3
+				while(aTemp == null && profondeur < 4)
 				{
 					aTemp = trouverTerritoirePlusPresDeLaFrontiere(source, profondeur);
 					profondeur++;
@@ -661,16 +661,9 @@ public class HugoAI extends Player
 				}
 			}
 			break;
-			// s'il est rendu a 4, on ne calcul plus on y va au hasard
+			// s'il est rendu a 4, on ne calcul plus
 		default:
-			int rand = new Random().nextInt(source.adjacentTerritories.size());
-			
-			destination = source.adjacentTerritories.get(rand);
-			
-			if(!estAMoi(destination))
-			{
-				destination = trouverTerritoirePlusPresDeLaFrontiere(source, 4);
-			}
+			destination = null;
 			break;
 		}
 		
