@@ -61,8 +61,8 @@ public class RiskGame extends Canvas{
 	public static final int PHASE_MOVE_ARMIES 	= 4;
 	public static final int PHASE_BONUS 		= 5;
 
-	public ArrayList<Player> 	players;
-	public ArrayList<Territory> territories;
+	public static ArrayList<Player> players;
+	public ArrayList<Territory> 	territories;
 
 	public Territory	attacker;
 	public Territory	defender;
@@ -72,7 +72,7 @@ public class RiskGame extends Canvas{
 
 	public static int BONUS_UNITS_COUNTER 	= 3;
 	protected static int STARTING_UNITS 	= 30;	//20 for 6, 25 for 5, 30 for 4 
-	protected static int MAX_UNITS 			= 200;
+	protected static int MAX_UNITS 			= 300;
 
 	protected boolean isOver = false;
 	public String winner = "";
@@ -144,7 +144,7 @@ public class RiskGame extends Canvas{
 		hugo.color = Color.black;
 
 		players.add(sam);
-		//players.add(emile);
+		players.add(emile);
 		players.add(pong);
 		players.add(max);
 		players.add(hugo);
@@ -463,7 +463,7 @@ public class RiskGame extends Canvas{
 			// If everything went batshit crazy, abort 
 			if(currentPlayer.countUnits() > 2*MAX_UNITS){
 				try {
-					this.players.remove(currentPlayer);
+					RiskGame.players.remove(currentPlayer);
 					this.executeGameOverCheck();
 				} catch (Exception e) {
 				}

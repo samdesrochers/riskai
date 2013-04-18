@@ -115,6 +115,9 @@ public class SamAI extends Player{
 		
 		// Check if we are in early game; if so, attack less
 		turnAttackThreshold = (nbTurnsPlayed < EARLY_GAME_COUNTER) ? turnAttackThreshold - 4 : turnAttackThreshold;
+		
+		// Check if we are in early game; if so, attack less
+		turnAttackThreshold = (RiskGame.players.size() == 2 ) ? 7 + turnAttackThreshold : turnAttackThreshold;
 
 		// Updates the values and sorts the territories
 		reinforce_updateUtilityValues();
@@ -293,20 +296,26 @@ public class SamAI extends Player{
 
 		this.didRecieveCardThisTurn = true;
 
-		// Leave 2 units if possible (my own strategy)
-		if(this.attacker.getUnits() > 2) {
-			conqueredTerritory.setUnits(this.attacker.getUnits() - 2);
-			this.attacker.setUnits(2);
+		if(canAttackOtherTerritory(conqueredTerritory)){
+			// Leave 2 units if possible (my own strategy)
+			if(this.attacker.getUnits() > 2) {
+				conqueredTerritory.setUnits(this.attacker.getUnits() - 2);
+				this.attacker.setUnits(2);
+			} else {
+				conqueredTerritory.setUnits(1);
+				this.attacker.setUnits(this.attacker.getUnits() - 1);
+			}
 		} else {
-			conqueredTerritory.setUnits(this.attacker.getUnits() -1);
+			// Leave 1 unit if the newly conquered territory can't attack next turn
+			conqueredTerritory.setUnits(this.attacker.getUnits() - 1);
 			this.attacker.setUnits(1);
 		}
-		
 		turnAttackThreshold = (nbTurnsPlayed < EARLY_GAME_COUNTER) ? turnAttackThreshold - 1 : turnAttackThreshold;
 
 		if(this.state == STATE_DEFENSIVE) {
 			turnAttackThreshold --;
 		}  
+
 	}
 
 	/*******************************************************
@@ -850,7 +859,8 @@ public class SamAI extends Player{
 			for(Territory adj : ter.adjacentTerritories){				// All territories adjacent to my territories
 				if(adj.getOwner().name.equals(myName)){ 				// ally territory
 					value += (canAttackOtherTerritory(ter)) ? 15 : 0;	// the allied territory can attack another one next turn
-					value += (adj.getUnits() > origin.getUnits()) ? 40 : 0; // Help a fellow territory if he's powerful already
+					value += (adj.getUnits() > origin.getUnits()) ? 30 : 0; // Help a fellow territory if he's powerful already by merging troops
+				
 				} else { 												// enemy territory
 					value += (adj.getUnits() < 2) ? 2 : 0;
 					value += (adj.getUnits() > ter.getUnits()) ? 3 : 0;
@@ -858,8 +868,8 @@ public class SamAI extends Player{
 				}
 			}
 
-			value += initialHeuristicValues.get(ter.name);
-			value += (ter.getUnits() < 2) ? 12 : 0;
+			value += initialHeuristicValues.get(ter.name);	// value by initial heuristic values (critical territories)
+			value += (ter.getUnits() < 2) ? 12 : 0;			// value if territory has low units
 			
 			moveTerritoriesValues.put(ter.name, value);
 
@@ -1011,7 +1021,7 @@ public class SamAI extends Player{
 	private int CONTINENT_NA_UTILITY_VALUE = 15;
 	private int CONTINENT_SA_UTILITY_VALUE = 5;
 	private int CONTINENT_AF_UTILITY_VALUE = 1;	
-	private int CONTINENT_AS_UTILITY_VALUE = 9;
+	private int CONTINENT_AS_UTILITY_VALUE = 4;
 	private int CONTINENT_AU_UTILITY_VALUE = 15;
 	private int CONTINENT_EU_UTILITY_VALUE = 1;
 	
@@ -1027,10 +1037,10 @@ public class SamAI extends Player{
 	private final int STATE_DEFENSIVE = 0;
 	private final int STATE_OFFENSIVE = 1;
 	
-	private final int OFFENSE_BONUS_THRESHOLD = 6;
-	private final int DEFENSE_PENALTY_THRESHOLD = 1;
-	private final int EARLY_GAME_COUNTER = 4;
-	private final int ATTACK_THRESHOLD = 10;
+	private final int OFFENSE_BONUS_THRESHOLD = 6;		// If in offense state, bonus to attack counter
+	private final int DEFENSE_PENALTY_THRESHOLD = 4;	// If in defense state, penalty to attack counter
+	private final int EARLY_GAME_COUNTER = 4;			// Won't attack a lot until after the 4th round
+	private final int ATTACK_THRESHOLD = 10;			// Base attack tries count
 
 	// Will attack variables
 	private int turnAttackThreshold = ATTACK_THRESHOLD;
