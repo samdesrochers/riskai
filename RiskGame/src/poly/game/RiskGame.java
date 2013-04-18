@@ -128,26 +128,26 @@ public class RiskGame extends Canvas{
 		players = new ArrayList<Player>();
 		currentPlayerIndex = -1;
 
-		Player p1 	= new SamAI("Sam");
-		p1.color = Color.YELLOW;
+		Player sam 	= new SamAI("Sam");
+		sam.color = Color.YELLOW;
 
-		Player p2 = new PoreuxAI("Emile");
-		p2.color = Color.blue;
+		Player emile = new PoreuxAI("Emile");
+		emile.color = Color.blue;
 
-		Player p3 = new PlayerGandhi("Pong");
-		p3.color = Color.green;
+		Player pong = new PlayerGandhi("Pong");
+		pong.color = Color.green;
 
-		Player p4 = new MaxAI("Maxim");
-		p4.color = Color.red;
+		Player max = new MaxAI("Maxim");
+		max.color = Color.red;
 
-		Player p5 = new HugoAI("Hugo");
-		p5.color = Color.black;
+		Player hugo = new HugoAI("Hugo");
+		hugo.color = Color.black;
 
-		players.add(p1);
-		//players.add(p2);
-		players.add(p3);
-		players.add(p4);
-		players.add(p5);
+		players.add(sam);
+		//players.add(emile);
+		players.add(pong);
+		players.add(max);
+		players.add(hugo);
 
 	}
 
